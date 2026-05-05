@@ -36,13 +36,28 @@ def send_alert(msg):
         try: requests.post(ALERT_WEBHOOK, json={"content": f"🚨 **LOCKSYSTEM ALERT**\n{msg}"})
         except: pass
 
-@app.route("/", methods=["GET"])
-def health(): return jsonify({"status": "LockSystem Pro Online"})
-
 @app.route("/api/status", methods=["GET"])
 def get_status():
     hwid = request.args.get("hwid", ""); db = get_file("database.json"); user = db.get(hwid, {})
-    return jsonify({"status": user.get("status", "active"), "username": user.get("username", "Unknown")})
+    return jsonify({
+        "status": user.get("status", "active"), 
+        "username": user.get("username", "Unknown"),
+        "uses": user.get("uses_remaining", -1)
+    })
+
+@app.route("/api/use", methods=["POST"])
+def record_use():
+    hwid = request.args.get("hwid", ""); db = get_file("database.json"); user = db.get(hwid)
+    if not user: return jsonify({"error": "Not found"}), 404
+    uses = user.get("uses_remaining", -1)
+    if uses > 0:
+        uses -= 1; user["uses_remaining"] = uses
+        if uses == 0: user["status"] = "suspended"; send_alert(f"User **{user['username']}** ran out of uses.")
+        save_files({"database.json": db})
+    return jsonify({"status": "ok", "uses_remaining": uses})
+
+@app.route("/", methods=["GET"])
+def health(): return jsonify({"status": "LockSystem Pro Online"})
 
 # ══════════════════════════════════════════════════════════════════════════
 # DISCORD BOT
@@ -72,36 +87,39 @@ def find_user(db, username):
         if data.get("username", "").lower() == username.lower(): return hwid, data
     return None, None
 
-# --- BASIC COMMANDS ---
 @bot.tree.command(name="list", description="List users")
 async def slash_list(interaction: discord.Interaction):
     db = get_file("database.json"); embed = discord.Embed(title="📋 Database", color=0x00FF00)
-    for h, d in db.items(): embed.add_field(name=d['username'], value=f"Status: {d['status']}", inline=True)
+    for h, d in db.items(): 
+        u = "∞" if d.get('uses_remaining', -1) == -1 else str(d['uses_remaining'])
+        embed.add_field(name=d['username'], value=f"Status: {d['status']}\nUses: {u}", inline=True)
     await interaction.response.send_message(embed=embed)
 
-@bot.tree.command(name="activate", description="Activate user")
-async def slash_act(interaction: discord.Interaction, username: str):
+@bot.tree.command(name="set_uses", description="Set uses for a user")
+async def slash_set_uses(interaction: discord.Interaction, username: str, uses: int):
     db = get_file("database.json"); h, d = find_user(db, username)
-    if h: db[h]["status"] = "active"; save_files({"database.json": db}); await interaction.response.send_message(f"🟢 {username} activated.")
-    else: await interaction.response.send_message("❌ User not found.")
-
-@bot.tree.command(name="ban", description="Ban user")
-async def slash_ban(interaction: discord.Interaction, username: str):
-    db = get_file("database.json"); h, d = find_user(db, username)
-    if h: db[h]["status"] = "banned"; save_files({"database.json": db}); await interaction.response.send_message(f"🔴 {username} banned.")
-    else: await interaction.response.send_message("❌ User not found.")
+    if h: 
+        db[h]["uses_remaining"] = uses
+        if uses > 0: db[h]["status"] = "active"
+        save_files({"database.json": db})
+        await interaction.response.send_message(f"✅ {username} uses set to {uses}.")
+    else: await interaction.response.send_message("❌ Not found.")
 
 @bot.tree.command(name="search_user", description="🔍 Search by username")
 async def slash_suser(interaction: discord.Interaction, username: str):
     db = get_file("database.json"); h, d = find_user(db, username)
-    if not h: return await interaction.response.send_message("❌ User not found.")
-    await interaction.response.send_message(f"👤 **User:** {username}\n🆔 **HWID:** {h}\n🏷️ **Status:** {d['status']}")
+    if not h: return await interaction.response.send_message("❌ Not found.")
+    u = "∞" if d.get('uses_remaining', -1) == -1 else str(d['uses_remaining'])
+    await interaction.response.send_message(f"👤 **User:** {username}\n🆔 **HWID:** {h}\n🏷️ **Status:** {d['status']}\n🔢 **Uses:** {u}")
 
+# (Including all other previous commands... search_hwid, mass_ban, etc.)
+# ...
 @bot.tree.command(name="search_hwid", description="🔍 Search by HWID")
 async def slash_shwid(interaction: discord.Interaction, hwid: str):
     db = get_file("database.json"); u = db.get(hwid)
     if not u: return await interaction.response.send_message("❌ HWID not found.")
-    await interaction.response.send_message(f"👤 **User:** {u['username']} | **Status:** {u['status']}")
+    uses = "∞" if u.get('uses_remaining', -1) == -1 else str(u['uses_remaining'])
+    await interaction.response.send_message(f"👤 **User:** {u['username']} | **Status:** {u['status']} | **Uses:** {uses}")
 
 @bot.tree.command(name="mass_ban", description="☢️ NUCLEAR: Ban ALL")
 async def slash_mban(interaction: discord.Interaction, password: str):
