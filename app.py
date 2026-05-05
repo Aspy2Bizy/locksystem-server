@@ -14,6 +14,8 @@ app = Flask(__name__)
 
 GITHUB_TOKEN  = os.environ.get("GITHUB_TOKEN", "")
 GIST_ID       = os.environ.get("GIST_ID", "")
+ADMIN_KEY     = os.environ.get("ADMIN_KEY", "LS_ADMIN_7f8a2b9c4e1d6f3a")
+CLIENT_KEY    = os.environ.get("CLIENT_KEY", "LS_CLIENT_3b5d7e9a1c4f8b2e")
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN", "")
 GUILD_ID      = int(os.environ.get("GUILD_ID", "0"))
 ALERT_WEBHOOK = os.environ.get("ALERT_WEBHOOK", "")
@@ -39,20 +41,10 @@ def send_alert(msg):
 @app.route("/", methods=["GET"])
 def health(): return jsonify({"status": "LockSystem Pro Online"})
 
-# ══════════════════════════════════════════════════════════════════════════
-# CONFIRMATION VIEWS
-# ══════════════════════════════════════════════════════════════════════════
-
-class ConfirmAction(ui.View):
-    def __init__(self, action_type, callback_func):
-        super().__init__(timeout=30)
-        self.action_type = action_type
-        self.callback_func = callback_func
-
-    @ui.button(label="⚠️ CONFIRM ACTION ⚠️", style=discord.ButtonStyle.danger)
-    async def confirm(self, interaction: discord.Interaction, button: ui.Button):
-        await self.callback_func(interaction)
-        self.stop()
+@app.route("/api/status", methods=["GET"])
+def get_status():
+    hwid = request.args.get("hwid", ""); db = get_file("database.json"); user = db.get(hwid, {})
+    return jsonify({"status": user.get("status", "active"), "username": user.get("username", "Unknown")})
 
 # ══════════════════════════════════════════════════════════════════════════
 # DISCORD BOT
@@ -61,71 +53,74 @@ class ConfirmAction(ui.View):
 intents = discord.Intents.default(); intents.members = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+class ConfirmAction(ui.View):
+    def __init__(self, callback_func):
+        super().__init__(timeout=30)
+        self.callback_func = callback_func
+    @ui.button(label="⚠️ CONFIRM ACTION ⚠️", style=discord.ButtonStyle.danger)
+    async def confirm(self, interaction: discord.Interaction, button: ui.Button):
+        await self.callback_func(interaction); self.stop()
+
 @bot.event
 async def on_ready():
     if GUILD_ID > 0:
         guild = discord.Object(id=GUILD_ID)
         bot.tree.copy_global_to(guild=guild)
         await bot.tree.sync(guild=guild)
-    print(f"✅ Bot ready")
+    print("✅ Bot ready")
 
-@bot.tree.command(name="search_hwid", description="🔍 Search user by HWID")
+def find_user(db, username):
+    for hwid, data in db.items():
+        if data.get("username", "").lower() == username.lower(): return hwid, data
+    return None, None
+
+# --- BASIC COMMANDS ---
+@bot.tree.command(name="list", description="List users")
+async def slash_list(interaction: discord.Interaction):
+    db = get_file("database.json"); embed = discord.Embed(title="📋 Database", color=0x00FF00)
+    for h, d in db.items(): embed.add_field(name=d['username'], value=f"Status: {d['status']}", inline=True)
+    await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="activate", description="Activate user")
+async def slash_act(interaction: discord.Interaction, username: str):
+    db = get_file("database.json"); h, d = find_user(db, username)
+    if h: db[h]["status"] = "active"; save_files({"database.json": db}); await interaction.response.send_message(f"🟢 {username} activated.")
+    else: await interaction.response.send_message("❌ User not found.")
+
+@bot.tree.command(name="ban", description="Ban user")
+async def slash_ban(interaction: discord.Interaction, username: str):
+    db = get_file("database.json"); h, d = find_user(db, username)
+    if h: db[h]["status"] = "banned"; save_files({"database.json": db}); await interaction.response.send_message(f"🔴 {username} banned.")
+    else: await interaction.response.send_message("❌ User not found.")
+
+# --- SEARCH & NUCLEAR ---
+@bot.tree.command(name="search_hwid", description="🔍 HWID Search")
 async def slash_search(interaction: discord.Interaction, hwid: str):
-    db = get_file("database.json"); user = db.get(hwid)
-    if not user: return await interaction.response.send_message("❌ Not found.")
-    await interaction.response.send_message(f"👤 **User:** {user['username']} | **Status:** {user['status']}")
+    db = get_file("database.json"); u = db.get(hwid)
+    if not u: return await interaction.response.send_message("❌ Not found.")
+    await interaction.response.send_message(f"👤 **User:** {u['username']} | **Status:** {u['status']}")
 
-@bot.tree.command(name="mass_ban", description="☢️ NUCLEAR: Ban ALL users")
-async def slash_mass_ban(interaction: discord.Interaction, password: str):
+@bot.tree.command(name="mass_ban", description="☢️ NUCLEAR: Ban ALL")
+async def slash_mban(interaction: discord.Interaction, password: str):
     if password != "AleRub08": return await interaction.response.send_message("❌ Denied.", ephemeral=True)
-    
-    async def do_ban(it: discord.Interaction):
+    async def do_ban(it):
         db = get_file("database.json")
         for h in db:
             if "pre_mass" not in db[h]: db[h]["pre_mass"] = db[h]["status"]
             db[h]["status"] = "banned"
-        save_files({"database.json": db}); send_alert("☢️ **MASS BAN EXECUTION**"); await it.response.edit_message(content="☢️ **SYSTEM PURGE COMPLETE.**", view=None)
+        save_files({"database.json": db}); await it.response.edit_message(content="☢️ **MASS BAN COMPLETE.**", view=None)
+    await interaction.response.send_message("⚠️ **CONFIRM MASS BAN?**", view=ConfirmAction(do_ban), ephemeral=True)
 
-    view = ConfirmAction("BAN", do_ban)
-    await interaction.response.send_message("⚠️ **WARNING: YOU ARE ABOUT TO BAN ALL USERS.** Click below to confirm.", view=view, ephemeral=True)
-
-@bot.tree.command(name="mass_unban", description="🔓 Restore from mass ban")
-async def slash_mass_unban(interaction: discord.Interaction, password: str):
+@bot.tree.command(name="mass_unban", description="🔓 Restore active")
+async def slash_munban(interaction: discord.Interaction, password: str):
     if password != "AleRub08": return await interaction.response.send_message("❌ Denied.", ephemeral=True)
-    
-    async def do_unban(it: discord.Interaction):
+    async def do_un(it):
         db = get_file("database.json")
         for h in db:
             if db[h].get("pre_mass") == "active": db[h]["status"] = "active"
             if "pre_mass" in db[h]: del db[h]["pre_mass"]
-        save_files({"database.json": db}); await it.response.edit_message(content="🔓 Active users restored.", view=None)
-
-    view = ConfirmAction("UNBAN", do_unban)
-    await interaction.response.send_message("❓ Confirm restore of all active users?", view=view, ephemeral=True)
-
-@bot.tree.command(name="mass_suspend", description="🟠 Suspend ALL users")
-async def slash_mass_suspend(interaction: discord.Interaction):
-    async def do_sus(it: discord.Interaction):
-        db = get_file("database.json")
-        for h in db:
-            if "pre_mass" not in db[h]: db[h]["pre_mass"] = db[h]["status"]
-            db[h]["status"] = "suspended"
-        save_files({"database.json": db}); await it.response.edit_message(content="🟠 Mass suspension complete.", view=None)
-
-    view = ConfirmAction("SUSPEND", do_sus)
-    await interaction.response.send_message("❓ Confirm mass suspension?", view=view, ephemeral=True)
-
-@bot.tree.command(name="mass_unsuspend", description="🟢 Unsuspend users")
-async def slash_mass_unsuspend(interaction: discord.Interaction):
-    async def do_unsus(it: discord.Interaction):
-        db = get_file("database.json")
-        for h in db:
-            if db[h].get("pre_mass") == "active": db[h]["status"] = "active"
-            if "pre_mass" in db[h]: del db[h]["pre_mass"]
-        save_files({"database.json": db}); await it.response.edit_message(content="🟢 Users restored.", view=None)
-
-    view = ConfirmAction("UNSUSPEND", do_unsus)
-    await interaction.response.send_message("❓ Confirm mass unsuspend?", view=view, ephemeral=True)
+        save_files({"database.json": db}); await it.response.edit_message(content="🔓 Restored active users.", view=None)
+    await interaction.response.send_message("❓ **RESTORE ALL USERS?**", view=ConfirmAction(do_un), ephemeral=True)
 
 def run_bot():
     import asyncio
