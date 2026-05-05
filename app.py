@@ -4,12 +4,14 @@ import requests
 import threading
 import datetime
 from flask import Flask, request, jsonify
+from dotenv import load_dotenv
+load_dotenv()
 import discord
 from discord.ext import commands
 
 app = Flask(__name__)
 
-# ── Environment Variables ──────────────────────────────────────────────────
+# â”€â”€ Environment Variables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 GITHUB_TOKEN  = os.environ.get("GITHUB_TOKEN", "")
 GIST_ID       = os.environ.get("GIST_ID", "")
 ADMIN_KEY     = os.environ.get("ADMIN_KEY", "LS_ADMIN_7f8a2b9c4e1d6f3a")
@@ -17,7 +19,7 @@ CLIENT_KEY    = os.environ.get("CLIENT_KEY", "LS_CLIENT_3b5d7e9a1c4f8b2e")
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN", "")
 GUILD_ID      = int(os.environ.get("GUILD_ID", "0"))
 ALERT_WEBHOOK = os.environ.get("ALERT_WEBHOOK", "")
-# ───────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 GH_HEADERS = lambda: {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
 
@@ -34,15 +36,15 @@ def save_files(file_dict):
 
 def send_alert(msg):
     if ALERT_WEBHOOK:
-        try: requests.post(ALERT_WEBHOOK, json={"content": f"🚨 **LOCKSYSTEM ALERT**\n{msg}"})
+        try: requests.post(ALERT_WEBHOOK, json={"content": f"ðŸš¨ **LOCKSYSTEM ALERT**\n{msg}"})
         except: pass
 
 def require_admin(req): return req.args.get("key") == ADMIN_KEY
 def require_client(req): return req.args.get("key") in [CLIENT_KEY, ADMIN_KEY]
 
-# ══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # REST API (for Apps)
-# ══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/status", methods=["GET"])
 def get_status():
@@ -76,7 +78,7 @@ def report_leak():
     if sender_hwid in db:
         db[sender_hwid]["status"] = "suspended_leak"
         save_files({"database.json": db})
-        send_alert(f"🛑 **LEAK!** Sender **{db[sender_hwid]['username']}** auto-suspended.")
+        send_alert(f"ðŸ›‘ **LEAK!** Sender **{db[sender_hwid]['username']}** auto-suspended.")
     return jsonify({"status": "ok"})
 
 @app.route("/api/check_update", methods=["GET"])
@@ -93,7 +95,7 @@ def push_update():
     if not require_admin(request): return jsonify({"error": "Unauthorized"}), 403
     data = request.json or {}; updates = get_file("updates.json")
     updates[data["slot_id"]] = {"version": data["version"], "url": data["url"], "key": data["key"], "timestamp": datetime.datetime.utcnow().isoformat()}
-    save_files({"updates.json": updates}); send_alert(f"🔄 **Update!** Slot **{data['slot_id']}** v{data['version']}.")
+    save_files({"updates.json": updates}); send_alert(f"ðŸ”„ **Update!** Slot **{data['slot_id']}** v{data['version']}.")
     return jsonify({"status": "ok"})
 
 @app.route("/api/list", methods=["GET"])
@@ -122,9 +124,9 @@ def add_user():
 @app.route("/", methods=["GET"])
 def health(): return jsonify({"status": "LockSystem Pro Online"})
 
-# ══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # DISCORD BOT
-# ══════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 intents = discord.Intents.default(); intents.members = True
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -135,7 +137,7 @@ async def on_ready():
         guild = discord.Object(id=GUILD_ID)
         bot.tree.copy_global_to(guild=guild)
         await bot.tree.sync(guild=guild)
-    print(f"✅ Bot ready as {bot.user}")
+    print(f"âœ… Bot ready as {bot.user}")
 
 def find_user(db, username):
     for hwid, data in db.items():
@@ -145,19 +147,19 @@ def find_user(db, username):
 @bot.tree.command(name="list", description="List all licensed users")
 async def slash_list(interaction: discord.Interaction):
     db = get_file("database.json")
-    embed = discord.Embed(title="📋 User Database", color=0x00FF00)
+    embed = discord.Embed(title="ðŸ“‹ User Database", color=0x00FF00)
     for hwid, d in db.items():
-        u = d.get("uses_remaining", -1); u_str = "∞" if u == -1 else str(u)
+        u = d.get("uses_remaining", -1); u_str = "âˆž" if u == -1 else str(u)
         embed.add_field(name=d.get("username", "???"), value=f"Status: {d.get('status','active')}\nUses: {u_str}", inline=True)
     await interaction.response.send_message(embed=embed)
 
 @bot.tree.command(name="info", description="Detailed user info")
 async def slash_info(interaction: discord.Interaction, username: str):
     db = get_file("database.json"); hwid, data = find_user(db, username)
-    if not hwid: return await interaction.response.send_message(f"❌ User `{username}` not found.")
+    if not hwid: return await interaction.response.send_message(f"âŒ User `{username}` not found.")
     expiry = data.get("expiry_date", "Never")
     if expiry != "Never": expiry = datetime.datetime.fromisoformat(expiry).strftime("%Y-%m-%d")
-    embed = discord.Embed(title=f"👤 {username}", color=0x00FF00)
+    embed = discord.Embed(title=f"ðŸ‘¤ {username}", color=0x00FF00)
     embed.add_field(name="HWID", value=f"`{hwid}`", inline=False)
     embed.add_field(name="Status", value=data.get("status","active").upper(), inline=True)
     embed.add_field(name="Expires", value=expiry, inline=True)
@@ -168,7 +170,7 @@ async def slash_ban(interaction: discord.Interaction, username: str):
     db = get_file("database.json"); hwid, data = find_user(db, username)
     if hwid: 
         db[hwid]["status"] = "banned"; save_files({"database.json": db})
-        await interaction.response.send_message(f"🔴 **{username}** BANNED.")
+        await interaction.response.send_message(f"ðŸ”´ **{username}** BANNED.")
     else: await interaction.response.send_message("User not found.")
 
 @bot.tree.command(name="suspend", description="Suspend a user")
@@ -176,7 +178,7 @@ async def slash_suspend(interaction: discord.Interaction, username: str):
     db = get_file("database.json"); hwid, data = find_user(db, username)
     if hwid:
         db[hwid]["status"] = "suspended"; save_files({"database.json": db})
-        await interaction.response.send_message(f"🟠 **{username}** SUSPENDED.")
+        await interaction.response.send_message(f"ðŸŸ  **{username}** SUSPENDED.")
     else: await interaction.response.send_message("User not found.")
 
 @bot.tree.command(name="activate", description="Activate a user")
@@ -184,7 +186,7 @@ async def slash_activate(interaction: discord.Interaction, username: str):
     db = get_file("database.json"); hwid, data = find_user(db, username)
     if hwid:
         db[hwid]["status"] = "active"; save_files({"database.json": db})
-        await interaction.response.send_message(f"🟢 **{username}** ACTIVATED.")
+        await interaction.response.send_message(f"ðŸŸ¢ **{username}** ACTIVATED.")
     else: await interaction.response.send_message("User not found.")
 
 @bot.tree.command(name="expire", description="Set expiry (in days)")
@@ -194,7 +196,7 @@ async def slash_expire(interaction: discord.Interaction, username: str, days: in
         new_date = datetime.datetime.utcnow() + datetime.timedelta(days=days)
         db[hwid]["expiry_date"] = new_date.isoformat(); db[hwid]["status"] = "active"
         save_files({"database.json": db})
-        await interaction.response.send_message(f"📅 **{username}** set to expire: {new_date.strftime('%Y-%m-%d')}")
+        await interaction.response.send_message(f"ðŸ“… **{username}** set to expire: {new_date.strftime('%Y-%m-%d')}")
     else: await interaction.response.send_message("User not found.")
 
 def run_bot():
