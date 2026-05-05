@@ -36,6 +36,9 @@ def send_alert(msg):
         try: requests.post(ALERT_WEBHOOK, json={"content": f"🚨 **LOCKSYSTEM ALERT**\n{msg}"})
         except: pass
 
+@app.route("/", methods=["GET"])
+def health(): return jsonify({"status": "LockSystem Pro Online"})
+
 @app.route("/api/status", methods=["GET"])
 def get_status():
     hwid = request.args.get("hwid", ""); db = get_file("database.json"); user = db.get(hwid, {})
@@ -48,7 +51,7 @@ def report_unauthorized():
     if hwid not in warnings:
         warnings[hwid] = {"timestamp": datetime.datetime.utcnow().isoformat(), "ip": request.remote_addr}
         save_files({"warnings.json": warnings})
-        send_alert(f"⚠️ **INTRUDER DETECTED!** HWID: {hwid} attempted access.")
+        send_alert(f"⚠️ **INTRUDER!** HWID: {hwid} attempted access.")
     return jsonify({"status": "reported"})
 
 @app.route("/api/use", methods=["POST"])
@@ -62,15 +65,20 @@ def record_use():
         save_files({"database.json": db})
     return jsonify({"status": "ok", "uses_remaining": uses})
 
-@app.route("/", methods=["GET"])
-def health(): return jsonify({"status": "LockSystem Pro Online"})
-
 # ══════════════════════════════════════════════════════════════════════════
 # DISCORD BOT
 # ══════════════════════════════════════════════════════════════════════════
 
 intents = discord.Intents.default(); intents.members = True
 bot = commands.Bot(command_prefix="!", intents=intents)
+
+class ConfirmAction(ui.View):
+    def __init__(self, callback_func):
+        super().__init__(timeout=30)
+        self.callback_func = callback_func
+    @ui.button(label="⚠️ CONFIRM ACTION ⚠️", style=discord.ButtonStyle.danger)
+    async def confirm(self, interaction: discord.Interaction, button: ui.Button):
+        await self.callback_func(interaction); self.stop()
 
 @bot.event
 async def on_ready():
@@ -80,26 +88,51 @@ async def on_ready():
         await bot.tree.sync(guild=guild)
     print("✅ Bot ready")
 
-@bot.tree.command(name="warnings", description="⚠️ List unauthorized access attempts")
-async def slash_warnings(interaction: discord.Interaction):
-    w = get_file("warnings.json"); embed = discord.Embed(title="⚠️ Warning List", color=0xFF0000)
-    for hwid, d in w.items(): embed.add_field(name=f"HWID: {hwid[:15]}...", value=f"Time: {d['timestamp']}", inline=False)
-    await interaction.response.send_message(embed=embed)
-
-# ... (All other commands remain the same) ...
-# (Including /search_user, /mass_ban, etc.)
-# ...
 def find_user(db, username):
     for hwid, data in db.items():
         if data.get("username", "").lower() == username.lower(): return hwid, data
     return None, None
 
-@bot.tree.command(name="search_user", description="🔍 Search by username")
-async def slash_suser(interaction: discord.Interaction, username: str):
+@bot.tree.command(name="list", description="List users")
+async def slash_list(interaction: discord.Interaction):
+    db = get_file("database.json"); embed = discord.Embed(title="📋 Database", color=0x00FF00)
+    for h, d in db.items(): 
+        u = "∞" if d.get('uses_remaining', -1) == -1 else str(d['uses_remaining'])
+        embed.add_field(name=d['username'], value=f"Status: {d['status']}\nUses: {u}", inline=True)
+    await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="info", description="User info")
+async def slash_info(interaction: discord.Interaction, username: str):
     db = get_file("database.json"); h, d = find_user(db, username)
     if not h: return await interaction.response.send_message("❌ Not found.")
-    u = "∞" if d.get('uses_remaining', -1) == -1 else str(d['uses_remaining'])
-    await interaction.response.send_message(f"👤 **User:** {username}\n🆔 **HWID:** {h}\n🏷️ **Status:** {d['status']}\n🔢 **Uses:** {u}")
+    embed = discord.Embed(title=f"👤 {username}", color=0x00FF00)
+    embed.add_field(name="Status", value=d['status'].upper())
+    embed.add_field(name="HWID", value=f"{h}")
+    await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="activate", description="Activate user")
+async def slash_act(interaction: discord.Interaction, username: str):
+    db = get_file("database.json"); h, d = find_user(db, username)
+    if h: db[h]["status"] = "active"; save_files({"database.json": db}); await interaction.response.send_message(f"🟢 {username} activated.")
+    else: await interaction.response.send_message("❌ Not found.")
+
+@bot.tree.command(name="ban", description="Ban user")
+async def slash_ban(interaction: discord.Interaction, username: str):
+    db = get_file("database.json"); h, d = find_user(db, username)
+    if h: db[h]["status"] = "banned"; save_files({"database.json": db}); await interaction.response.send_message(f"🔴 {username} banned.")
+    else: await interaction.response.send_message("❌ Not found.")
+
+@bot.tree.command(name="set_uses", description="Set uses")
+async def slash_uses(interaction: discord.Interaction, username: str, uses: int):
+    db = get_file("database.json"); h, d = find_user(db, username)
+    if h: db[h]["uses_remaining"] = uses; save_files({"database.json": db}); await interaction.response.send_message(f"✅ {username} uses set to {uses}.")
+    else: await interaction.response.send_message("❌ Not found.")
+
+@bot.tree.command(name="warnings", description="⚠️ Warning List")
+async def slash_warns(interaction: discord.Interaction):
+    w = get_file("warnings.json"); embed = discord.Embed(title="⚠️ Warning List", color=0xFF0000)
+    for h, d in w.items(): embed.add_field(name=f"Intruder: {h[:15]}...", value=f"Time: {d['timestamp']}", inline=False)
+    await interaction.response.send_message(embed=embed)
 
 @bot.tree.command(name="mass_ban", description="☢️ NUCLEAR: Ban ALL")
 async def slash_mban(interaction: discord.Interaction, password: str):
@@ -112,13 +145,16 @@ async def slash_mban(interaction: discord.Interaction, password: str):
         save_files({"database.json": db}); await it.response.edit_message(content="☢️ **MASS BAN COMPLETE.**", view=None)
     await interaction.response.send_message("⚠️ **CONFIRM MASS BAN?**", view=ConfirmAction(do_ban), ephemeral=True)
 
-class ConfirmAction(ui.View):
-    def __init__(self, callback_func):
-        super().__init__(timeout=30)
-        self.callback_func = callback_func
-    @ui.button(label="⚠️ CONFIRM ACTION ⚠️", style=discord.ButtonStyle.danger)
-    async def confirm(self, interaction: discord.Interaction, button: ui.Button):
-        await self.callback_func(interaction); self.stop()
+@bot.tree.command(name="mass_unban", description="🔓 Restore active")
+async def slash_munban(interaction: discord.Interaction, password: str):
+    if password != "AleRub08": return await interaction.response.send_message("❌ Denied.", ephemeral=True)
+    async def do_un(it):
+        db = get_file("database.json")
+        for h in db:
+            if db[h].get("pre_mass") == "active": db[h]["status"] = "active"
+            if "pre_mass" in db[h]: del db[h]["pre_mass"]
+        save_files({"database.json": db}); await it.response.edit_message(content="🔓 Restored active users.", view=None)
+    await interaction.response.send_message("❓ **RESTORE ALL USERS?**", view=ConfirmAction(do_un), ephemeral=True)
 
 def run_bot():
     import asyncio
