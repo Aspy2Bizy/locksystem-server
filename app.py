@@ -14,8 +14,6 @@ app = Flask(__name__)
 
 GITHUB_TOKEN  = os.environ.get("GITHUB_TOKEN", "")
 GIST_ID       = os.environ.get("GIST_ID", "")
-ADMIN_KEY     = os.environ.get("ADMIN_KEY", "LS_ADMIN_7f8a2b9c4e1d6f3a")
-CLIENT_KEY    = os.environ.get("CLIENT_KEY", "LS_CLIENT_3b5d7e9a1c4f8b2e")
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN", "")
 GUILD_ID      = int(os.environ.get("GUILD_ID", "0"))
 ALERT_WEBHOOK = os.environ.get("ALERT_WEBHOOK", "")
@@ -93,11 +91,16 @@ async def slash_ban(interaction: discord.Interaction, username: str):
     if h: db[h]["status"] = "banned"; save_files({"database.json": db}); await interaction.response.send_message(f"🔴 {username} banned.")
     else: await interaction.response.send_message("❌ User not found.")
 
-# --- SEARCH & NUCLEAR ---
-@bot.tree.command(name="search_hwid", description="🔍 HWID Search")
-async def slash_search(interaction: discord.Interaction, hwid: str):
+@bot.tree.command(name="search_user", description="🔍 Search by username")
+async def slash_suser(interaction: discord.Interaction, username: str):
+    db = get_file("database.json"); h, d = find_user(db, username)
+    if not h: return await interaction.response.send_message("❌ User not found.")
+    await interaction.response.send_message(f"👤 **User:** {username}\n🆔 **HWID:** {h}\n🏷️ **Status:** {d['status']}")
+
+@bot.tree.command(name="search_hwid", description="🔍 Search by HWID")
+async def slash_shwid(interaction: discord.Interaction, hwid: str):
     db = get_file("database.json"); u = db.get(hwid)
-    if not u: return await interaction.response.send_message("❌ Not found.")
+    if not u: return await interaction.response.send_message("❌ HWID not found.")
     await interaction.response.send_message(f"👤 **User:** {u['username']} | **Status:** {u['status']}")
 
 @bot.tree.command(name="mass_ban", description="☢️ NUCLEAR: Ban ALL")
