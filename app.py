@@ -37,13 +37,13 @@ def save_files(file_dict):
 def send_alert(msg):
     if ALERT_WEBHOOK:
         try:
-            requests.post(ALERT_WEBHOOK, json={"content": f"ðŸš¨ **LOCKSYSTEM ALERT**\n{msg}"}, timeout=5)
+            requests.post(ALERT_WEBHOOK, json={"content": f"🚨 **LOCKSYSTEM ALERT**\n{msg}"}, timeout=5)
         except:
             pass
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════════════
 # FLASK ROUTES
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════════════
 
 @app.route("/", methods=["GET"])
 def health():
@@ -106,12 +106,12 @@ def report_unauthorized():
     else:
         warnings[hwid]["attempts"] = warnings[hwid].get("attempts", 1) + 1
     save_files({"warnings.json": warnings})
-    send_alert(f"âš ï¸ Unauthorized access attempt!\n**HWID:** `{hwid}`\n**Time:** {timestamp}")
+    send_alert(f"⚠️ Unauthorized access attempt!\n**HWID:** `{hwid}`\n**Time:** {timestamp}")
     return jsonify({"ok": True})
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════════════
 # DISCORD BOT
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════════════
 
 intents = discord.Intents.default()
 intents.members = True
@@ -122,18 +122,38 @@ class ConfirmAction(ui.View):
         super().__init__(timeout=30)
         self.callback_func = callback_func
 
-    @ui.button(label="âš ï¸ CONFIRM ACTION âš ï¸", style=discord.ButtonStyle.danger)
+    @ui.button(label="⚠️ CONFIRM ACTION ⚠️", style=discord.ButtonStyle.danger)
     async def confirm(self, interaction: discord.Interaction, button: ui.Button):
         await self.callback_func(interaction)
         self.stop()
 
 @bot.event
 async def on_ready():
-    if GUILD_ID > 0:
-        guild = discord.Object(id=GUILD_ID)
-        bot.tree.copy_global_to(guild=guild)
-        await bot.tree.sync(guild=guild)
-    print("âœ… Bot ready")
+    try:
+        # Sync globally first
+        synced = await bot.tree.sync()
+        print(f"✅ Bot ready — synced {len(synced)} global commands")
+        # Also copy + sync to the guild for instant availability (no 1hr delay)
+        if GUILD_ID > 0:
+            guild = discord.Object(id=GUILD_ID)
+            bot.tree.copy_global_to(guild=guild)
+            guild_synced = await bot.tree.sync(guild=guild)
+            print(f"✅ Guild synced {len(guild_synced)} commands to {GUILD_ID}")
+    except Exception as e:
+        print(f"❌ Sync failed: {e}")
+
+@bot.command(name="sync")
+async def force_sync(ctx):
+    """Prefix command: !sync — force re-registers all slash commands."""
+    try:
+        synced = await bot.tree.sync()
+        if GUILD_ID > 0:
+            guild = discord.Object(id=GUILD_ID)
+            bot.tree.copy_global_to(guild=guild)
+            await bot.tree.sync(guild=guild)
+        await ctx.send(f"✅ Synced {len(synced)} commands globally + to guild.")
+    except Exception as e:
+        await ctx.send(f"❌ Sync failed: {e}")
 
 def find_user(db, username):
     for hwid, data in db.items():
@@ -141,82 +161,82 @@ def find_user(db, username):
             return hwid, data
     return None, None
 
-# â”€â”€ MANAGEMENT COMMANDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── MANAGEMENT COMMANDS ──────────────────────────────────────────────────
 
-@bot.tree.command(name="list", description="ðŸ“‹ List all licensed users")
+@bot.tree.command(name="list", description="📋 List all licensed users")
 async def slash_list(interaction: discord.Interaction):
     await interaction.response.defer()
     db = get_file("database.json")
-    embed = discord.Embed(title="ðŸ“‹ LockSystem Database", color=0x00FF00)
+    embed = discord.Embed(title="📋 LockSystem Database", color=0x00FF00)
     for h, d in list(db.items())[:25]: # Limit to 25 to prevent embed size issues
-        uses = "âˆž" if d.get("uses_remaining", -1) == -1 else d.get("uses_remaining", "?")
+        uses = "∞" if d.get("uses_remaining", -1) == -1 else d.get("uses_remaining", "?")
         embed.add_field(name=d.get("username", "Unknown"), value=f"Status: `{d.get('status','?')}` | Uses: `{uses}`", inline=True)
     await interaction.followup.send(embed=embed)
 
-@bot.tree.command(name="info", description="â„¹ï¸ Get info on a user")
+@bot.tree.command(name="info", description="ℹ️ Get info on a user")
 async def slash_info(interaction: discord.Interaction, username: str):
     await interaction.response.defer()
     db = get_file("database.json")
     h, d = find_user(db, username)
     if not h:
-        return await interaction.followup.send("âŒ User not found.")
-    uses = "âˆž" if d.get("uses_remaining", -1) == -1 else d.get("uses_remaining", "?")
-    embed = discord.Embed(title=f"ðŸ‘¤ {username}", color=0x00FF00)
+        return await interaction.followup.send("❌ User not found.")
+    uses = "∞" if d.get("uses_remaining", -1) == -1 else d.get("uses_remaining", "?")
+    embed = discord.Embed(title=f"👤 {username}", color=0x00FF00)
     embed.add_field(name="Status", value=d.get("status", "?"))
     embed.add_field(name="Uses Remaining", value=uses)
     embed.add_field(name="HWID", value=f"`{h[:30]}...`")
     await interaction.followup.send(embed=embed)
 
-@bot.tree.command(name="activate", description="ðŸŸ¢ Activate a user")
+@bot.tree.command(name="activate", description="🟢 Activate a user")
 async def slash_act(interaction: discord.Interaction, username: str):
     await interaction.response.defer()
     db = get_file("database.json")
     h, d = find_user(db, username)
     if not h:
-        return await interaction.followup.send("âŒ User not found.")
+        return await interaction.followup.send("❌ User not found.")
     db[h]["status"] = "active"
     db[h]["mass_banned"] = False
     db[h]["mass_suspended"] = False
     save_files({"database.json": db})
-    await interaction.followup.send(f"ðŸŸ¢ **{username}** has been activated.")
+    await interaction.followup.send(f"🟢 **{username}** has been activated.")
 
-@bot.tree.command(name="ban", description="ðŸ”´ Ban a user (manual â€” survives mass unban)")
+@bot.tree.command(name="ban", description="🔴 Ban a user (manual — survives mass unban)")
 async def slash_ban(interaction: discord.Interaction, username: str):
     await interaction.response.defer()
     db = get_file("database.json")
     h, d = find_user(db, username)
     if not h:
-        return await interaction.followup.send("âŒ User not found.")
+        return await interaction.followup.send("❌ User not found.")
     db[h]["status"] = "banned"
     db[h]["mass_banned"] = False
     save_files({"database.json": db})
-    await interaction.followup.send(f"ðŸ”´ **{username}** has been banned.")
+    await interaction.followup.send(f"🔴 **{username}** has been banned.")
 
-@bot.tree.command(name="suspend", description="â¸ Suspend a user (manual â€” survives mass unsuspend)")
+@bot.tree.command(name="suspend", description="⏸ Suspend a user (manual — survives mass unsuspend)")
 async def slash_suspend(interaction: discord.Interaction, username: str):
     await interaction.response.defer()
     db = get_file("database.json")
     h, d = find_user(db, username)
     if not h:
-        return await interaction.followup.send("âŒ User not found.")
+        return await interaction.followup.send("❌ User not found.")
     db[h]["status"] = "suspended"
     db[h]["mass_suspended"] = False
     save_files({"database.json": db})
-    await interaction.followup.send(f"â¸ **{username}** has been suspended.")
+    await interaction.followup.send(f"⏸ **{username}** has been suspended.")
 
-@bot.tree.command(name="unsuspend", description="â–¶ï¸ Unsuspend a user")
+@bot.tree.command(name="unsuspend", description="▶️ Unsuspend a user")
 async def slash_unsuspend(interaction: discord.Interaction, username: str):
     await interaction.response.defer()
     db = get_file("database.json")
     h, d = find_user(db, username)
     if not h:
-        return await interaction.followup.send("âŒ User not found.")
+        return await interaction.followup.send("❌ User not found.")
     db[h]["status"] = "active"
     db[h]["mass_suspended"] = False
     save_files({"database.json": db})
-    await interaction.followup.send(f"â–¶ï¸ **{username}** has been unsuspended.")
+    await interaction.followup.send(f"▶️ **{username}** has been unsuspended.")
 
-@bot.tree.command(name="set_policy", description="âš–ï¸ Set global security policy")
+@bot.tree.command(name="set_policy", description="⚖️ Set global security policy")
 async def slash_policy(interaction: discord.Interaction, event: str, action: str):
     # event: hwid_mismatch, leaker_action
     # action: ban, suspend, nothing
@@ -224,14 +244,14 @@ async def slash_policy(interaction: discord.Interaction, event: str, action: str
     policies = get_file("policies.json") or {}
     policies[event] = action
     save_files({"policies.json": policies})
-    await interaction.followup.send(f"âš–ï¸ Policy for `{event}` set to `{action}`.")
+    await interaction.followup.send(f"⚖️ Policy for `{event}` set to `{action}`.")
 
-# â”€â”€ MASS ACTION COMMANDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── MASS ACTION COMMANDS ─────────────────────────────────────────────────
 
-@bot.tree.command(name="mass_ban", description="â˜¢ï¸ NUCLEAR: Ban ALL users (manual bans preserved on unban)")
+@bot.tree.command(name="mass_ban", description="☢️ NUCLEAR: Ban ALL users (manual bans preserved on unban)")
 async def slash_mban(interaction: discord.Interaction, password: str):
     if password != "AleRub08":
-        return await interaction.response.send_message("âŒ Wrong password.", ephemeral=True)
+        return await interaction.response.send_message("❌ Wrong password.", ephemeral=True)
     async def do_ban(it):
         await it.response.defer()
         db = get_file("database.json")
@@ -240,13 +260,13 @@ async def slash_mban(interaction: discord.Interaction, password: str):
                 db[h]["status"] = "banned"
                 db[h]["mass_banned"] = True
         save_files({"database.json": db})
-        await it.followup.send("â˜¢ï¸ **MASS BAN EXECUTED.** All users banned.")
-    await interaction.response.send_message("âš ï¸ **CONFIRM NUCLEAR MASS BAN?**", view=ConfirmAction(do_ban), ephemeral=True)
+        await it.followup.send("☢️ **MASS BAN EXECUTED.** All users banned.")
+    await interaction.response.send_message("⚠️ **CONFIRM NUCLEAR MASS BAN?**", view=ConfirmAction(do_ban), ephemeral=True)
 
-@bot.tree.command(name="mass_unban", description="ðŸ”“ Restore all MASS-banned users (manual bans stay)")
+@bot.tree.command(name="mass_unban", description="🔓 Restore all MASS-banned users (manual bans stay)")
 async def slash_munban(interaction: discord.Interaction, password: str):
     if password != "AleRub08":
-        return await interaction.response.send_message("âŒ Wrong password.", ephemeral=True)
+        return await interaction.response.send_message("❌ Wrong password.", ephemeral=True)
     async def do_unban(it):
         await it.response.defer()
         db = get_file("database.json")
@@ -255,10 +275,10 @@ async def slash_munban(interaction: discord.Interaction, password: str):
                 db[h]["status"] = "active"
                 db[h]["mass_banned"] = False
         save_files({"database.json": db})
-        await it.followup.send("ðŸ”“ **Mass-banned users restored.**")
-    await interaction.response.send_message("â“ **Restore all mass-banned users?**", view=ConfirmAction(do_unban), ephemeral=True)
+        await it.followup.send("🔓 **Mass-banned users restored.**")
+    await interaction.response.send_message("❓ **Restore all mass-banned users?**", view=ConfirmAction(do_unban), ephemeral=True)
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ══════════════════════════════════════════════════════════════════════════
 
 def run_bot():
     import asyncio
