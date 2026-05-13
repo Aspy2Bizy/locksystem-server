@@ -99,14 +99,34 @@ def use_program():
 @app.route("/api/report_unauthorized", methods=["POST"])
 def report_unauthorized():
     hwid = request.args.get("hwid", "Unknown")
+    target_hwid = request.args.get("target_hwid", "")
     timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+    
+    files_to_save = {}
+    
     warnings = get_file("warnings.json")
     if hwid not in warnings:
-        warnings[hwid] = {"timestamp": timestamp, "attempts": 1}
+        warnings[hwid] = {"timestamp": timestamp, "attempts": 1, "leaked_from": target_hwid}
     else:
         warnings[hwid]["attempts"] = warnings[hwid].get("attempts", 1) + 1
-    save_files({"warnings.json": warnings})
-    send_alert(f"⚠️ Unauthorized access attempt!\n**HWID:** `{hwid}`\n**Time:** {timestamp}")
+        warnings[hwid]["leaked_from"] = target_hwid
+    files_to_save["warnings.json"] = warnings
+    
+    msg = f"⚠️ Unauthorized access attempt!\n**Intruder HWID:** `{hwid}`\n**Leaked From:** `{target_hwid}`\n**Time:** {timestamp}"
+    
+    if target_hwid:
+        policies = get_file("policies.json") or {}
+        leaker_action = policies.get("leaker_action", "nothing")
+        if leaker_action in ["ban", "suspend"]:
+            db = get_file("database.json")
+            if target_hwid in db:
+                if db[target_hwid].get("status") not in ["banned", "suspended"]:
+                    db[target_hwid]["status"] = "banned" if leaker_action == "ban" else "suspended"
+                    files_to_save["database.json"] = db
+                    msg += f"\n🚨 **ACTION TAKEN:** Leaker has been automatically {leaker_action}ned!"
+
+    save_files(files_to_save)
+    send_alert(msg)
     return jsonify({"ok": True})
 
 # ══════════════════════════════════════════════════════════════════════════
