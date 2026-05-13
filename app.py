@@ -287,6 +287,17 @@ def run_bot():
     except:
         pass
 
+def keep_alive():
+    """Ping the server every 10 minutes to prevent Render free tier from sleeping."""
+    import time
+    while True:
+        try:
+            requests.get("https://locksystem-server.onrender.com/", timeout=10)
+        except:
+            pass
+        time.sleep(600)
+
 if __name__ == "__main__":
+    threading.Thread(target=keep_alive, daemon=True).start()
     threading.Thread(target=run_bot, daemon=True).start()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
