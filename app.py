@@ -237,7 +237,20 @@ async def slash_ban(interaction: discord.Interaction, username: str):
     db[h]["status"] = "banned"
     db[h]["mass_banned"] = False
     save_files({"database.json": db})
-    await interaction.followup.send(f"🔴 **{username}** has been banned.")
+    await interaction.followup.send(f"\U0001f534 **{username}** has been banned.")
+
+@bot.tree.command(name="unban", description="\U0001f7e2 Unban a user (restore to active)")
+async def slash_unban(interaction: discord.Interaction, username: str):
+    await interaction.response.defer()
+    db = get_file("database.json")
+    h, d = find_user(db, username)
+    if not h:
+        return await interaction.followup.send("\u274c User not found.")
+    db[h]["status"] = "active"
+    db[h]["mass_banned"] = False
+    db[h]["mass_suspended"] = False
+    save_files({"database.json": db})
+    await interaction.followup.send(f"\U0001f7e2 **{username}** has been unbanned and restored to active.")
 
 @bot.tree.command(name="suspend", description="⏸ Suspend a user (manual — survives mass unsuspend)")
 async def slash_suspend(interaction: discord.Interaction, username: str):
