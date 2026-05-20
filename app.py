@@ -150,30 +150,37 @@ class ConfirmAction(ui.View):
 @bot.event
 async def on_ready():
     try:
-        # Sync globally first
-        synced = await bot.tree.sync()
-        print(f"✅ Bot ready — synced {len(synced)} global commands")
-        # Also copy + sync to the guild for instant availability (no 1hr delay)
+        if GUILD_ID > 0:
+            guild = discord.Object(id=GUILD_ID)
+            # Register ALL commands guild-only (instant, no duplicates)
+            bot.tree.copy_global_to(guild=guild)
+            guild_synced = await bot.tree.sync(guild=guild)
+            # Clear global commands so nothing appears twice
+            bot.tree.clear_commands(guild=None)
+            await bot.tree.sync()
+            print(f"\u2705 Bot ready \u2014 {len(guild_synced)} commands synced to guild {GUILD_ID} (global cleared)")
+        else:
+            synced = await bot.tree.sync()
+            print(f"\u2705 Bot ready \u2014 {len(synced)} global commands synced")
+    except Exception as e:
+        print(f"\u274c Sync failed: {e}")
+
+@bot.command(name="sync")
+async def force_sync(ctx):
+    """Prefix command: !sync \u2014 re-register slash commands guild-only (fixes duplicates)."""
+    try:
         if GUILD_ID > 0:
             guild = discord.Object(id=GUILD_ID)
             bot.tree.copy_global_to(guild=guild)
             guild_synced = await bot.tree.sync(guild=guild)
-            print(f"✅ Guild synced {len(guild_synced)} commands to {GUILD_ID}")
+            bot.tree.clear_commands(guild=None)
+            await bot.tree.sync()
+            await ctx.send(f"\u2705 {len(guild_synced)} commands synced to guild. Global cleared \u2014 no more duplicates.")
+        else:
+            synced = await bot.tree.sync()
+            await ctx.send(f"\u2705 {len(synced)} global commands synced.")
     except Exception as e:
-        print(f"❌ Sync failed: {e}")
-
-@bot.command(name="sync")
-async def force_sync(ctx):
-    """Prefix command: !sync — force re-registers all slash commands."""
-    try:
-        synced = await bot.tree.sync()
-        if GUILD_ID > 0:
-            guild = discord.Object(id=GUILD_ID)
-            bot.tree.copy_global_to(guild=guild)
-            await bot.tree.sync(guild=guild)
-        await ctx.send(f"✅ Synced {len(synced)} commands globally + to guild.")
-    except Exception as e:
-        await ctx.send(f"❌ Sync failed: {e}")
+        await ctx.send(f"\u274c Sync failed: {e}")
 
 def find_user(db, username):
     for hwid, data in db.items():
@@ -256,28 +263,42 @@ async def slash_unsuspend(interaction: discord.Interaction, username: str):
     save_files({"database.json": db})
     await interaction.followup.send(f"▶️ **{username}** has been unsuspended.")
 
-@bot.tree.command(name="idiot", description="🤡 Toggle the YouAreAnIdiot prank for a specific user")
+@bot.tree.command(name="idiot", description="\U0001f921 Toggle YouAreAnIdiot prank for a user (triggers on their next launch)")
 async def slash_idiot(interaction: discord.Interaction, username: str):
     await interaction.response.defer()
     db = get_file("database.json")
     h, d = find_user(db, username)
     if not h:
-        return await interaction.followup.send("❌ User not found.")
+        return await interaction.followup.send("\u274c User not found.")
     current = d.get("status", "active")
     if current == "idiotban":
-        # Toggle OFF — restore to active
         db[h]["status"] = "active"
         db[h]["mass_banned"] = False
         db[h]["mass_suspended"] = False
         save_files({"database.json": db})
-        await interaction.followup.send(f"🟢 **{username}** idiotban has been turned **OFF** (restored to active).")
+        await interaction.followup.send(f"\U0001f7e2 **{username}** idiotban is now **OFF** (restored to active).")
     else:
-        # Toggle ON
         db[h]["status"] = "idiotban"
         save_files({"database.json": db})
-        await interaction.followup.send(f"🤡 **{username}** idiotban is now **ON** — next launch triggers the prank.")
+        await interaction.followup.send(f"\U0001f921 **{username}** idiotban is now **ON** \u2014 prank plays on next launch.")
 
-@bot.tree.command(name="set_policy", description="⚖️ Set global security policy")
+@bot.tree.command(name="hwid_punish", description="\U0001f4a5 Toggle HWID-mismatch prank for a user (requires exe rebuild)")
+async def slash_hwid_punish(interaction: discord.Interaction, username: str):
+    await interaction.response.defer()
+    db = get_file("database.json")
+    h, d = find_user(db, username)
+    if not h:
+        return await interaction.followup.send("\u274c User not found.")
+    current = d.get("hwid_punish", False)
+    db[h]["hwid_punish"] = not current
+    save_files({"database.json": db})
+    state = "ON" if not current else "OFF"
+    note = " \u2014 rebuild their exe in Cryptify to apply!" if not current else ""
+    await interaction.followup.send(
+        f"\U0001f4a5 **{username}** HWID-mismatch prank is now **{state}**{note}"
+    )
+
+@bot.tree.command(name="set_policy", description="\u2696\ufe0f Set global security policy")
 async def slash_policy(interaction: discord.Interaction, event: str, action: str):
     # event: hwid_mismatch, leaker_action
     # action: ban, suspend, nothing
