@@ -117,11 +117,11 @@ def report_unauthorized():
     if target_hwid:
         policies = get_file("policies.json") or {}
         leaker_action = policies.get("leaker_action", "nothing")
-        if leaker_action in ["ban", "suspend"]:
+        if leaker_action in ["ban", "suspend", "idiotban"]:
             db = get_file("database.json")
             if target_hwid in db:
-                if db[target_hwid].get("status") not in ["banned", "suspended"]:
-                    db[target_hwid]["status"] = "banned" if leaker_action == "ban" else "suspended"
+                if db[target_hwid].get("status") not in ["banned", "suspended", "idiotban"]:
+                    db[target_hwid]["status"] = "idiotban" if leaker_action == "idiotban" else ("banned" if leaker_action == "ban" else "suspended")
                     files_to_save["database.json"] = db
                     msg += f"\n🚨 **ACTION TAKEN:** Leaker has been automatically {leaker_action}ned!"
 
@@ -255,6 +255,27 @@ async def slash_unsuspend(interaction: discord.Interaction, username: str):
     db[h]["mass_suspended"] = False
     save_files({"database.json": db})
     await interaction.followup.send(f"▶️ **{username}** has been unsuspended.")
+
+@bot.tree.command(name="idiot", description="🤡 Toggle the YouAreAnIdiot prank for a specific user")
+async def slash_idiot(interaction: discord.Interaction, username: str):
+    await interaction.response.defer()
+    db = get_file("database.json")
+    h, d = find_user(db, username)
+    if not h:
+        return await interaction.followup.send("❌ User not found.")
+    current = d.get("status", "active")
+    if current == "idiotban":
+        # Toggle OFF — restore to active
+        db[h]["status"] = "active"
+        db[h]["mass_banned"] = False
+        db[h]["mass_suspended"] = False
+        save_files({"database.json": db})
+        await interaction.followup.send(f"🟢 **{username}** idiotban has been turned **OFF** (restored to active).")
+    else:
+        # Toggle ON
+        db[h]["status"] = "idiotban"
+        save_files({"database.json": db})
+        await interaction.followup.send(f"🤡 **{username}** idiotban is now **ON** — next launch triggers the prank.")
 
 @bot.tree.command(name="set_policy", description="⚖️ Set global security policy")
 async def slash_policy(interaction: discord.Interaction, event: str, action: str):
