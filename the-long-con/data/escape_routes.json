@@ -1,0 +1,40 @@
+{
+  "_doc": "Escape routes and the ways police can scout, block or ambush them. requires_bank_rooms are room ids that must exist in the generated bank for the route to start there.",
+  "version": 1,
+  "routes": [
+    { "id": "sewer", "name": "Sewer Tunnels", "start_requires_bank_rooms": ["maintenance"], "start_floor": "vault_level", "capacity_bags": 8, "travel_seconds": 180, "loud": false, "setup": "Breach the maintenance floor grate (drill or thermite).", "interceptions": ["flood_gates", "tunnel_ambush", "drone_scout"] },
+    { "id": "helicopter", "name": "Rooftop Helicopter", "start_requires_bank_rooms": ["helipad"], "start_floor": "roof", "capacity_bags": 6, "travel_seconds": 60, "loud": true, "setup": "Professor calls it in; it needs 90 s on the pad.", "interceptions": ["sniper_overwatch", "police_helicopter", "roof_breach"] },
+    { "id": "getaway_cars", "name": "Getaway Cars", "start_requires_bank_rooms": ["loading_dock"], "start_floor": "parking", "capacity_bags": 10, "travel_seconds": 120, "loud": true, "setup": "Cars staged in parking or the alley.", "interceptions": ["roadblock", "spike_strip", "pursuit"] },
+    { "id": "police_van", "name": "Hijacked Police Van", "start_requires_bank_rooms": ["staff_entrance"], "start_floor": "lobby", "capacity_bags": 8, "travel_seconds": 120, "loud": false, "setup": "Take a van from the staging area. Uniforms help.", "interceptions": ["van_tracker", "roadblock", "identity_check"] },
+    { "id": "subway", "name": "Subway Tunnel", "start_requires_bank_rooms": ["vault_antechamber"], "start_floor": "vault_level", "capacity_bags": 12, "travel_seconds": 240, "loud": true, "setup": "Dig through the vault-level wall into the service tunnel.", "interceptions": ["power_cut_trains", "tunnel_ambush", "drone_scout"] },
+    { "id": "boat", "name": "River Boat", "start_requires_bank_rooms": ["loading_dock"], "start_floor": "parking", "capacity_bags": 8, "travel_seconds": 150, "loud": false, "setup": "Reach the harbor edge through the alleys.", "interceptions": ["harbor_patrol", "sniper_overwatch", "pursuit"] }
+  ],
+  "interceptions": [
+    { "id": "flood_gates", "name": "Flood Gates", "counter": "Professor opens gates remotely" },
+    { "id": "tunnel_ambush", "name": "Tunnel Ambush", "counter": "Scout ahead, tripwires behind" },
+    { "id": "drone_scout", "name": "Drone Scout", "counter": "Jammer" },
+    { "id": "sniper_overwatch", "name": "Sniper Overwatch", "counter": "Smoke, suppression" },
+    { "id": "police_helicopter", "name": "Police Helicopter", "counter": "Suppression, power cut to spotlights" },
+    { "id": "roof_breach", "name": "Roof Breach", "counter": "Hold the stairwell" },
+    { "id": "roadblock", "name": "Roadblock", "counter": "Professor traffic override, alternate street" },
+    { "id": "spike_strip", "name": "Spike Strip", "counter": "Scout route" },
+    { "id": "pursuit", "name": "Pursuit", "counter": "Swap cars, tunnels" },
+    { "id": "van_tracker", "name": "Van GPS Tracker", "counter": "Tech removes tracker (30 s)" },
+    { "id": "identity_check", "name": "Identity Check", "counter": "Fake ID, staff uniform" },
+    { "id": "power_cut_trains", "name": "Trains Stopped", "counter": "Walk the tunnel (slow)" },
+    { "id": "harbor_patrol", "name": "Harbor Patrol", "counter": "Night timing, decoy boat" }
+  ],
+  "breakouts": {
+    "currency": "leverage",
+    "allowed_max_stars": 5,
+    "cost_leverage": 100,
+    "success_chance_base": 0.6,
+    "success_chance_per_extra_leverage": 0.002,
+    "duration_seconds": [180, 300],
+    "variants": [
+      { "id": "convoy_stop", "desc": "AI motorcyclists stop the prison convoy." },
+      { "id": "wall_blast", "desc": "A charge blows the holding-facility wall." }
+    ],
+    "leverage_sources": { "hostage_held_per_minute": 2, "sabotage_action": 10, "intel_found": 15, "camera_hijacked": 5 }
+  }
+}

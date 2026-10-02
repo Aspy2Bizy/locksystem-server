@@ -1,0 +1,51 @@
+{
+  "_doc": "Civilian-death penalty split, repeat-offence growth, mistake deductions and PvPvE surrender payouts. Money values are in cash before the difficulty multiplier.",
+  "version": 1,
+  "civilian_death": {
+    "base_penalty": 4000,
+    "shooter_share": 1.0,
+    "own_team_share_each": 0.1,
+    "enemy_team_share_each": 0.1,
+    "repeat_offence_growth": 1.5,
+    "_repeat_doc": "Shooter's penalty for their Nth civilian kill in a round = base * growth^(N-1).",
+    "hazard_death_charged_to": "trigger_player",
+    "hostage_death_robber_team_loss": 6000,
+    "hostage_saved_police_gain": 3000
+  },
+  "griefing": {
+    "deliberate_hostage_kill_extra": 5000,
+    "team_kill_extra": 3000,
+    "vote_kick_threshold": 0.6,
+    "public_only": true
+  },
+  "mistakes": {
+    "_doc": "End-of-round deductions as a fraction of extracted money. severity_scale multiplies by the tier's mistake_penalty_multiplier. Capped at max_total_fraction.",
+    "max_total_fraction": 0.8,
+    "items": [
+      { "id": "civilian_killed", "fraction": 0.05, "minor": false },
+      { "id": "hostage_killed", "fraction": 0.08, "minor": false },
+      { "id": "teammate_arrested", "fraction": 0.04, "minor": false },
+      { "id": "teammate_killed", "fraction": 0.03, "minor": false },
+      { "id": "alarm_triggered_early", "fraction": 0.03, "minor": true },
+      { "id": "camera_spotted", "fraction": 0.01, "minor": true },
+      { "id": "property_damage", "fraction": 0.005, "minor": true, "per_unit": true },
+      { "id": "bag_lost", "fraction": 0.02, "minor": true },
+      { "id": "professor_traced", "fraction": 0.05, "minor": false }
+    ]
+  },
+  "surrender": {
+    "pvpve_only": true,
+    "arrested_keeps_fraction": 0.35,
+    "killed_keeps_fraction": 0.0,
+    "excessive_force_penalty": 5000,
+    "arcade_arrest_bonus_police": 2500,
+    "arcade_respawn_cost": 500
+  },
+  "police_budget": {
+    "_doc": "PvPvE: reinforcement tickets drained by police mistakes.",
+    "start_tickets": 40,
+    "civilian_killed_by_police": 4,
+    "failed_assault": 3,
+    "officer_down": 1
+  }
+}

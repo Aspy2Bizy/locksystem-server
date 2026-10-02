@@ -1,0 +1,149 @@
+{
+  "_doc": "Robber and police roles. 'gadgets' reference ids in weapons_gadgets.json. 'ability' is the signature role ability (one per role, Rainbow Six style).",
+  "version": 1,
+  "robber_roles": [
+    {
+      "id": "professor",
+      "name": "Professor",
+      "summary": "Plays from outside the bank with cameras and tech. Must stay undercover.",
+      "inside_bank": false,
+      "max_per_team": 1,
+      "ability": {
+        "id": "camera_wall",
+        "name": "Camera Wall",
+        "desc": "View hijacked bank and street cameras. Feeds have a delay and limited coverage; police Tech can spot a hijacked feed.",
+        "params": { "max_feeds": 6, "feed_delay_seconds": 1.5, "hijack_time_seconds": 8 }
+      },
+      "gadgets": ["laptop_rig", "power_sabotage_kit", "traffic_override", "radio_scanner", "burner_phone"],
+      "undercover": { "detectability_base": 5, "arrested_if_found": true },
+      "unlock_reputation": 0
+    },
+    {
+      "id": "breacher",
+      "name": "Breacher",
+      "summary": "Charges, drills and door entry.",
+      "inside_bank": true,
+      "max_per_team": 2,
+      "ability": {
+        "id": "shaped_charge",
+        "name": "Shaped Charge",
+        "desc": "Blow a hole through a wall or door. Loud.",
+        "params": { "charges": 2, "fuse_seconds": 4, "noise_radius_m": 80 }
+      },
+      "gadgets": ["drill", "breaching_charge", "thermite", "lockpick_set", "door_wedge"],
+      "unlock_reputation": 0
+    },
+    {
+      "id": "enforcer",
+      "name": "Enforcer",
+      "summary": "Heavy weapons, suppression and hostage control.",
+      "inside_bank": true,
+      "max_per_team": 2,
+      "ability": {
+        "id": "intimidate",
+        "name": "Intimidate",
+        "desc": "Shout down a group of civilians, raising compliance and lowering hero chance in a radius.",
+        "params": { "radius_m": 10, "compliance_boost": 0.4, "cooldown_seconds": 30 }
+      },
+      "gadgets": ["zip_ties", "riot_shield", "flashbang", "ammo_bag"],
+      "unlock_reputation": 100
+    },
+    {
+      "id": "tech",
+      "name": "Tech",
+      "summary": "Jammers, hacking and remote traps.",
+      "inside_bank": true,
+      "max_per_team": 2,
+      "ability": {
+        "id": "network_hack",
+        "name": "Network Hack",
+        "desc": "Hack electronic locks, cameras and controllers. Traceable: police Tech can counter-hack.",
+        "params": { "hack_speed": 1.0, "trace_rate": 0.1 }
+      },
+      "gadgets": ["jammer", "hacking_device", "remote_mine", "tripwire_kit", "camera_loop"],
+      "unlock_reputation": 150
+    },
+    {
+      "id": "medic_forger",
+      "name": "Medic and Forger",
+      "summary": "Revives teammates and fakes IDs and uniforms.",
+      "inside_bank": true,
+      "max_per_team": 1,
+      "ability": {
+        "id": "fast_revive",
+        "name": "Field Surgery",
+        "desc": "Revive downed teammates faster and stop bleeding.",
+        "params": { "revive_seconds": 3, "bleed_stop": true }
+      },
+      "gadgets": ["med_kit", "fake_id", "staff_uniform", "adrenaline"],
+      "unlock_reputation": 200
+    }
+  ],
+  "police_roles": [
+    {
+      "id": "commander",
+      "name": "Commander",
+      "summary": "Runs drone and camera feeds and directs units. No authorization gate over breaches.",
+      "max_per_team": 1,
+      "ability": {
+        "id": "tactical_map",
+        "name": "Tactical Map",
+        "desc": "Place pings and orders visible to all police and AI units.",
+        "params": { "max_pings": 5, "ai_command_radius_m": 200 }
+      },
+      "gadgets": ["command_drone", "megaphone", "floor_plans"]
+    },
+    {
+      "id": "assault",
+      "name": "Assault",
+      "summary": "Breaching and entry.",
+      "max_per_team": 4,
+      "ability": {
+        "id": "ram_breach",
+        "name": "Hydraulic Ram",
+        "desc": "Breach a locked door quickly and quietly-ish.",
+        "params": { "breach_seconds": 3 }
+      },
+      "gadgets": ["breaching_charge", "flashbang", "riot_shield", "taser"]
+    },
+    {
+      "id": "sniper",
+      "name": "Sniper and Overwatch",
+      "summary": "Long-range pressure from outside.",
+      "max_per_team": 2,
+      "ability": {
+        "id": "spotter_scope",
+        "name": "Spotter Scope",
+        "desc": "Mark targets through windows for all police.",
+        "params": { "mark_seconds": 6 }
+      },
+      "gadgets": ["rangefinder", "smoke_grenade"]
+    },
+    {
+      "id": "police_tech",
+      "name": "Tech and Drone Operator",
+      "summary": "Scouting, jamming and counter-hacking the robbers' Tech.",
+      "max_per_team": 2,
+      "ability": {
+        "id": "counter_hack",
+        "name": "Counter-Hack",
+        "desc": "Trace and reverse a robber hack, or reclaim a hijacked camera feed.",
+        "params": { "trace_speed": 1.0 }
+      },
+      "gadgets": ["recon_drone", "police_jammer", "signal_tracer"]
+    },
+    {
+      "id": "police_medic",
+      "name": "Medic and Hostage Rescue",
+      "summary": "Treats the wounded and extracts hostages.",
+      "max_per_team": 2,
+      "ability": {
+        "id": "hostage_extract",
+        "name": "Rescue Carry",
+        "desc": "Move faster while escorting freed hostages.",
+        "params": { "escort_speed_mult": 1.3 }
+      },
+      "gadgets": ["med_kit", "smoke_grenade", "riot_shield"]
+    }
+  ]
+}

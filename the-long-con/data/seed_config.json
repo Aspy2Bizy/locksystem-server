@@ -1,0 +1,57 @@
+{
+  "_doc": "What a seed may roll, and the validation rules every generated bank must pass. A failed check re-rolls the seed (seed + attempt).",
+  "version": 1,
+  "cell_size_m": 6.0,
+  "floor_height_m": 4.0,
+  "grid": { "min": [7, 7], "max": [9, 9] },
+  "floor_stack": {
+    "_doc": "Bottom to top. Each entry: type and how many of that floor the seed may roll.",
+    "order": [
+      { "type": "parking", "count": [1, 1] },
+      { "type": "vault_level", "count": [1, 1] },
+      { "type": "lobby", "count": [1, 1] },
+      { "type": "mezzanine", "count": [0, 1] },
+      { "type": "offices", "count": [1, 2] },
+      { "type": "staff", "count": [1, 1] },
+      { "type": "roof", "count": [1, 1] }
+    ],
+    "ground_floor_type": "lobby"
+  },
+  "required_per_floor": {
+    "parking": ["loading_dock", "maintenance", "electrical_room"],
+    "vault_level": ["vault", "vault_antechamber", "pump_room", "safe_deposit", "maintenance"],
+    "lobby": ["lobby_hall", "teller_counter", "staff_entrance", "bathroom"],
+    "mezzanine": ["bathroom"],
+    "offices": ["bathroom"],
+    "staff": ["break_room", "bathroom", "counting_room"],
+    "roof": ["roof_access", "helipad"]
+  },
+  "required_once": {
+    "_doc": "Rooms that must appear exactly once somewhere in the building, on any allowed floor.",
+    "rooms": ["security_office", "manager_office", "server_room", "electrical_room", "hvac_room"]
+  },
+  "corridors": {
+    "_doc": "Each floor gets one spine row and one spine column (the 'main halls'). Parking and roof get a wider open layout via their filler rooms instead.",
+    "spine_rows": [1, 1],
+    "spine_cols": [1, 1],
+    "edge_margin": 1
+  },
+  "security": {
+    "cameras_per_floor": [2, 6],
+    "guards_total": [2, 6],
+    "lock_types": ["keycard", "keypad", "mechanical", "none"],
+    "staff_only_lock_chance": 0.7
+  },
+  "civilians": {
+    "count": [18, 40],
+    "staff_fraction": [0.3, 0.45]
+  },
+  "validation": {
+    "all_cells_filled": true,
+    "all_rooms_reachable": true,
+    "min_entry_routes": 2,
+    "min_vault_lock_solutions": 2,
+    "min_vault_hazard_solutions": 2,
+    "max_attempts": 50
+  }
+}

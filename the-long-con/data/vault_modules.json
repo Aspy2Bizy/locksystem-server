@@ -1,0 +1,700 @@
+{
+  "_doc": "Vault = layout + lock + lockdown hazard + staff dependency. Each lock and hazard lists solutions. A solution is feasible for a seed when every room in requires.rooms exists in the generated bank and every part in requires.parts is found in at least one existing room (see weapons_gadgets.json parts.found_in). The validator demands min_vault_lock_solutions and min_vault_hazard_solutions feasible solutions. cost fields: time_s, noise_m, alert (raises building alert), traceable (police Tech can counter-hack). budget_cost is spent from the tier's security_budget; whatever is left buys cameras (camera_cost) and guards (guard_cost), so a hard vault means softer security elsewhere.",
+  "version": 1,
+  "layouts": [
+    {
+      "id": "single_deep",
+      "name": "Single Deep Vault",
+      "doors": 1,
+      "loot_split": false,
+      "desc": "One heavy door, one large room.",
+      "weight": 4
+    },
+    {
+      "id": "nested",
+      "name": "Nested Vaults",
+      "doors": 2,
+      "loot_split": false,
+      "desc": "An outer vault protects an inner one; the lock applies to both.",
+      "weight": 2
+    },
+    {
+      "id": "deposit_maze",
+      "name": "Safe-Deposit Maze",
+      "doors": 1,
+      "loot_split": false,
+      "desc": "Corridors of deposit boxes; loot is scattered.",
+      "weight": 2
+    },
+    {
+      "id": "split",
+      "name": "Split Vault",
+      "doors": 2,
+      "loot_split": true,
+      "desc": "Cash and valuables are in separate vaults.",
+      "weight": 2
+    }
+  ],
+  "locks": [
+    {
+      "id": "mech_combination",
+      "family": "mechanical",
+      "name": "Combination Tumblers",
+      "solutions": [
+        {
+          "id": "crack_by_ear",
+          "desc": "Crack tumblers by ear with tumbler parts.",
+          "requires": {
+            "parts": [
+              "gear_set",
+              "spare_key"
+            ]
+          },
+          "cost": {
+            "time_s": 120,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": false
+          }
+        },
+        {
+          "id": "drill",
+          "desc": "Drill the lock body.",
+          "requires": {},
+          "cost": {
+            "time_s": 180,
+            "noise_m": 40,
+            "alert": true,
+            "traceable": false
+          }
+        },
+        {
+          "id": "thermite_door",
+          "desc": "Burn through the door hinge side.",
+          "requires": {
+            "parts": [
+              "aluminum_powder",
+              "iron_oxide",
+              "magnesium_strip"
+            ]
+          },
+          "cost": {
+            "time_s": 60,
+            "noise_m": 30,
+            "alert": true,
+            "traceable": false
+          }
+        }
+      ],
+      "budget_cost": 20,
+      "weight": 2
+    },
+    {
+      "id": "mech_timed_bolts",
+      "family": "mechanical",
+      "name": "Timed Bolts",
+      "solutions": [
+        {
+          "id": "wait_timer",
+          "desc": "Hold the bank until the time lock opens.",
+          "requires": {},
+          "cost": {
+            "time_s": 600,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": false
+          }
+        },
+        {
+          "id": "drill",
+          "desc": "Drill the bolt mechanism.",
+          "requires": {},
+          "cost": {
+            "time_s": 200,
+            "noise_m": 40,
+            "alert": true,
+            "traceable": false
+          }
+        },
+        {
+          "id": "power_reset",
+          "desc": "Trip the timer by cutting and restoring power.",
+          "requires": {
+            "rooms": [
+              "electrical_room"
+            ]
+          },
+          "cost": {
+            "time_s": 90,
+            "noise_m": 0,
+            "alert": true,
+            "traceable": false
+          }
+        }
+      ],
+      "budget_cost": 15,
+      "weight": 2
+    },
+    {
+      "id": "mech_two_keys",
+      "family": "mechanical",
+      "name": "Two-Key Lock",
+      "solutions": [
+        {
+          "id": "take_keys",
+          "desc": "Take keys from the manager and security chief.",
+          "requires": {
+            "rooms": [
+              "manager_office",
+              "security_office"
+            ]
+          },
+          "cost": {
+            "time_s": 30,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": false
+          }
+        },
+        {
+          "id": "drill",
+          "desc": "Drill both cylinders.",
+          "requires": {},
+          "cost": {
+            "time_s": 240,
+            "noise_m": 40,
+            "alert": true,
+            "traceable": false
+          }
+        }
+      ],
+      "budget_cost": 15,
+      "weight": 2
+    },
+    {
+      "id": "elec_keypad",
+      "family": "electronic",
+      "name": "Keypad",
+      "solutions": [
+        {
+          "id": "hack_keypad",
+          "desc": "Hack the keypad on contact.",
+          "requires": {},
+          "cost": {
+            "time_s": 60,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": true
+          }
+        },
+        {
+          "id": "code_from_manager",
+          "desc": "Get the code from the manager or their office.",
+          "requires": {
+            "rooms": [
+              "manager_office"
+            ]
+          },
+          "cost": {
+            "time_s": 20,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": false
+          }
+        },
+        {
+          "id": "drill",
+          "desc": "Drill out the keypad housing.",
+          "requires": {},
+          "cost": {
+            "time_s": 150,
+            "noise_m": 40,
+            "alert": true,
+            "traceable": false
+          }
+        }
+      ],
+      "budget_cost": 20,
+      "weight": 2
+    },
+    {
+      "id": "elec_network",
+      "family": "electronic",
+      "name": "Networked Lock",
+      "solutions": [
+        {
+          "id": "hack_server",
+          "desc": "Hack the lock from the server room.",
+          "requires": {
+            "rooms": [
+              "server_room"
+            ]
+          },
+          "cost": {
+            "time_s": 90,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": true
+          }
+        },
+        {
+          "id": "remote_hack",
+          "desc": "Professor hacks remotely through an IT closet uplink.",
+          "requires": {
+            "rooms": [
+              "it_closet"
+            ]
+          },
+          "cost": {
+            "time_s": 150,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": true
+          }
+        },
+        {
+          "id": "thermite_door",
+          "desc": "Burn through the door.",
+          "requires": {
+            "parts": [
+              "aluminum_powder",
+              "iron_oxide",
+              "magnesium_strip"
+            ]
+          },
+          "cost": {
+            "time_s": 60,
+            "noise_m": 30,
+            "alert": true,
+            "traceable": false
+          }
+        }
+      ],
+      "budget_cost": 25,
+      "weight": 2
+    },
+    {
+      "id": "hybrid",
+      "family": "hybrid",
+      "name": "Hybrid Lock",
+      "solutions": [
+        {
+          "id": "hack_and_crack",
+          "desc": "Hack the electronic stage, crack the tumblers.",
+          "requires": {
+            "rooms": [
+              "server_room"
+            ],
+            "parts": [
+              "gear_set",
+              "spare_key"
+            ]
+          },
+          "cost": {
+            "time_s": 180,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": true
+          }
+        },
+        {
+          "id": "drill_and_hack",
+          "desc": "Drill the mechanical stage, hack on contact.",
+          "requires": {},
+          "cost": {
+            "time_s": 220,
+            "noise_m": 40,
+            "alert": true,
+            "traceable": true
+          }
+        },
+        {
+          "id": "thermite_door",
+          "desc": "Burn through the door.",
+          "requires": {
+            "parts": [
+              "aluminum_powder",
+              "iron_oxide",
+              "magnesium_strip"
+            ]
+          },
+          "cost": {
+            "time_s": 75,
+            "noise_m": 30,
+            "alert": true,
+            "traceable": false
+          }
+        }
+      ],
+      "budget_cost": 35,
+      "weight": 2
+    }
+  ],
+  "hazards": [
+    {
+      "id": "flooding",
+      "name": "Flooding",
+      "base_dps": 0,
+      "kill_mechanic": "drowning",
+      "breath_seconds": 25,
+      "solutions": [
+        {
+          "id": "rebreather",
+          "desc": "Craft a rebreather and work underwater.",
+          "requires": {
+            "parts": [
+              "air_tank",
+              "valve",
+              "hose"
+            ]
+          },
+          "cost": {
+            "time_s": 25,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": false
+          }
+        },
+        {
+          "id": "drain_pump",
+          "desc": "Drain the vault from the pump room.",
+          "requires": {
+            "rooms": [
+              "pump_room"
+            ]
+          },
+          "cost": {
+            "time_s": 60,
+            "noise_m": 20,
+            "alert": false,
+            "traceable": false
+          }
+        },
+        {
+          "id": "hack_flood_controller",
+          "desc": "Hack the flood controller.",
+          "requires": {
+            "rooms": [
+              "server_room"
+            ]
+          },
+          "cost": {
+            "time_s": 45,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": true
+          }
+        }
+      ],
+      "budget_cost": 30,
+      "weight": 2
+    },
+    {
+      "id": "gas",
+      "name": "Oxygen-Depleting Gas",
+      "base_dps": 6,
+      "kill_mechanic": "asphyxiation",
+      "solutions": [
+        {
+          "id": "gas_mask",
+          "desc": "Craft improvised gas masks.",
+          "requires": {
+            "parts": [
+              "air_tank",
+              "hose",
+              "rubber_block"
+            ]
+          },
+          "cost": {
+            "time_s": 20,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": false
+          }
+        },
+        {
+          "id": "vent_hvac",
+          "desc": "Purge the gas through the HVAC system.",
+          "requires": {
+            "rooms": [
+              "hvac_room"
+            ]
+          },
+          "cost": {
+            "time_s": 50,
+            "noise_m": 10,
+            "alert": false,
+            "traceable": false
+          }
+        },
+        {
+          "id": "hack_ventilation",
+          "desc": "Hack the ventilation controller.",
+          "requires": {
+            "rooms": [
+              "server_room"
+            ]
+          },
+          "cost": {
+            "time_s": 45,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": true
+          }
+        }
+      ],
+      "budget_cost": 30,
+      "weight": 2
+    },
+    {
+      "id": "laser_grid",
+      "name": "Laser Grid",
+      "base_dps": 40,
+      "kill_mechanic": "burn",
+      "solutions": [
+        {
+          "id": "cut_power",
+          "desc": "Cut power to the vault level.",
+          "requires": {
+            "rooms": [
+              "electrical_room"
+            ]
+          },
+          "cost": {
+            "time_s": 30,
+            "noise_m": 0,
+            "alert": true,
+            "traceable": false
+          }
+        },
+        {
+          "id": "smoke_map",
+          "desc": "Use smoke to reveal the beams and crawl through.",
+          "requires": {
+            "parts": [
+              "potassium_nitrate",
+              "sugar"
+            ]
+          },
+          "cost": {
+            "time_s": 70,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": false
+          }
+        },
+        {
+          "id": "hack_grid",
+          "desc": "Hack the grid controller.",
+          "requires": {
+            "rooms": [
+              "server_room"
+            ]
+          },
+          "cost": {
+            "time_s": 45,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": true
+          }
+        }
+      ],
+      "budget_cost": 25,
+      "weight": 2
+    },
+    {
+      "id": "collapsing_floor",
+      "name": "Collapsing Floor",
+      "base_dps": 0,
+      "kill_mechanic": "fall",
+      "solutions": [
+        {
+          "id": "plank_route",
+          "desc": "Lay a route on the support beams (shown by scouting).",
+          "requires": {
+            "rooms": [
+              "maintenance"
+            ]
+          },
+          "cost": {
+            "time_s": 60,
+            "noise_m": 10,
+            "alert": false,
+            "traceable": false
+          }
+        },
+        {
+          "id": "lock_hydraulics",
+          "desc": "Lock the floor hydraulics from the pump room.",
+          "requires": {
+            "rooms": [
+              "pump_room"
+            ]
+          },
+          "cost": {
+            "time_s": 40,
+            "noise_m": 10,
+            "alert": false,
+            "traceable": false
+          }
+        }
+      ],
+      "budget_cost": 35,
+      "weight": 2
+    },
+    {
+      "id": "pressure_plates",
+      "name": "Pressure-Plate Sequence",
+      "base_dps": 0,
+      "kill_mechanic": "trap_trigger",
+      "solutions": [
+        {
+          "id": "sequence_from_cams",
+          "desc": "Read the safe sequence off security camera footage.",
+          "requires": {
+            "rooms": [
+              "security_office"
+            ]
+          },
+          "cost": {
+            "time_s": 45,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": false
+          }
+        },
+        {
+          "id": "weigh_down",
+          "desc": "Weigh plates down with loot bags or bodies, one at a time.",
+          "requires": {},
+          "cost": {
+            "time_s": 120,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": false
+          }
+        },
+        {
+          "id": "hack_plates",
+          "desc": "Hack the plate controller.",
+          "requires": {
+            "rooms": [
+              "server_room"
+            ]
+          },
+          "cost": {
+            "time_s": 45,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": true
+          }
+        }
+      ],
+      "budget_cost": 20,
+      "weight": 2
+    },
+    {
+      "id": "airlock",
+      "name": "Sealed Airlock",
+      "base_dps": 0,
+      "kill_mechanic": "trapped",
+      "solutions": [
+        {
+          "id": "manual_override",
+          "desc": "Crank the manual override from maintenance.",
+          "requires": {
+            "rooms": [
+              "maintenance"
+            ]
+          },
+          "cost": {
+            "time_s": 90,
+            "noise_m": 20,
+            "alert": false,
+            "traceable": false
+          }
+        },
+        {
+          "id": "hack_airlock",
+          "desc": "Hack the airlock controller.",
+          "requires": {
+            "rooms": [
+              "server_room"
+            ]
+          },
+          "cost": {
+            "time_s": 45,
+            "noise_m": 0,
+            "alert": false,
+            "traceable": true
+          }
+        },
+        {
+          "id": "thermite_seal",
+          "desc": "Burn the seal.",
+          "requires": {
+            "parts": [
+              "aluminum_powder",
+              "iron_oxide",
+              "magnesium_strip"
+            ]
+          },
+          "cost": {
+            "time_s": 60,
+            "noise_m": 30,
+            "alert": true,
+            "traceable": false
+          }
+        }
+      ],
+      "budget_cost": 25,
+      "weight": 2
+    }
+  ],
+  "staff_dependencies": [
+    {
+      "id": "none",
+      "name": "None",
+      "requires": {},
+      "weight": 3
+    },
+    {
+      "id": "manager_biometrics",
+      "name": "Manager Biometrics",
+      "requires": {
+        "rooms": [
+          "manager_office"
+        ]
+      },
+      "desc": "The manager must be alive and brought to the vault scanner.",
+      "weight": 2
+    },
+    {
+      "id": "two_person",
+      "name": "Two-Person Rule",
+      "requires": {
+        "rooms": [
+          "security_office"
+        ]
+      },
+      "desc": "A second staff member must hold a switch at another door at the same time.",
+      "weight": 2
+    }
+  ],
+  "lockdown_rules": {
+    "triggers": [
+      "vault_door_tampered",
+      "vault_alarm_tripped",
+      "manual_from_security_office"
+    ],
+    "warning_window_uses_difficulty": true,
+    "hurts_everyone": true,
+    "can_be_disabled_after_trigger": true
+  },
+  "security_costs": {
+    "camera_cost": 3,
+    "guard_cost": 6,
+    "min_cameras": 4,
+    "min_guards": 2
+  }
+}

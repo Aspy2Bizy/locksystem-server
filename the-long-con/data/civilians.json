@@ -1,0 +1,38 @@
+{
+  "_doc": "Civilian behaviour types. Each civilian has four simulated values 0..1: fear, compliance, panic, heroics. Behaviour picks per tick from these (see scripts/systems/civilian_brain.gd). spawn_rooms are room tags.",
+  "version": 1,
+  "types": [
+    { "id": "customer", "name": "Customer", "weight": 10, "staff": false, "base": { "fear": 0.2, "compliance": 0.6, "panic": 0.2, "heroics": 0.02 }, "spawn_tags": ["public", "lobby"], "armed_chance": 0.0 },
+    { "id": "elderly", "name": "Elderly Customer", "weight": 3, "staff": false, "base": { "fear": 0.4, "compliance": 0.8, "panic": 0.3, "heroics": 0.0 }, "spawn_tags": ["public", "lobby"], "move_speed_mult": 0.6, "armed_chance": 0.0 },
+    { "id": "parent_child", "name": "Parent With Child", "weight": 2, "staff": false, "base": { "fear": 0.5, "compliance": 0.85, "panic": 0.5, "heroics": 0.0 }, "spawn_tags": ["public", "lobby"], "hostage_value_mult": 1.5, "armed_chance": 0.0 },
+    { "id": "teller", "name": "Teller", "weight": 5, "staff": true, "base": { "fear": 0.3, "compliance": 0.7, "panic": 0.2, "heroics": 0.03 }, "spawn_tags": ["cash_small"], "can_trigger_silent_alarm": true, "armed_chance": 0.0 },
+    { "id": "office_worker", "name": "Office Worker", "weight": 8, "staff": true, "base": { "fear": 0.25, "compliance": 0.65, "panic": 0.25, "heroics": 0.02 }, "spawn_tags": ["staff"], "carries_keycard_chance": 0.3, "armed_chance": 0.0 },
+    { "id": "manager", "name": "Bank Manager", "weight": 0, "staff": true, "unique": true, "base": { "fear": 0.35, "compliance": 0.5, "panic": 0.3, "heroics": 0.05 }, "spawn_tags": ["manager"], "carries": ["vault_code", "manager_key", "biometrics"], "hostage_value_mult": 3.0, "armed_chance": 0.0 },
+    { "id": "security_chief", "name": "Security Chief", "weight": 0, "staff": true, "unique": true, "base": { "fear": 0.1, "compliance": 0.3, "panic": 0.1, "heroics": 0.4 }, "spawn_tags": ["guards"], "carries": ["security_key"], "armed_chance": 1.0 },
+    { "id": "guard", "name": "Guard", "weight": 0, "staff": true, "base": { "fear": 0.1, "compliance": 0.2, "panic": 0.1, "heroics": 0.6 }, "spawn_tags": ["guards", "lobby"], "armed_chance": 1.0, "is_guard": true },
+    { "id": "janitor", "name": "Janitor", "weight": 2, "staff": true, "base": { "fear": 0.2, "compliance": 0.7, "panic": 0.2, "heroics": 0.05 }, "spawn_tags": ["staff_only", "tools"], "carries_keycard_chance": 0.8, "armed_chance": 0.0 },
+    { "id": "armed_citizen", "name": "Armed Citizen", "weight": 0, "staff": false, "seeded_extra": true, "base": { "fear": 0.15, "compliance": 0.3, "panic": 0.1, "heroics": 0.5 }, "spawn_tags": ["public"], "armed_chance": 1.0, "concealed": true },
+    { "id": "off_duty_cop", "name": "Off-Duty Cop", "weight": 0, "staff": false, "seeded_extra": true, "base": { "fear": 0.05, "compliance": 0.15, "panic": 0.05, "heroics": 0.8 }, "spawn_tags": ["public"], "armed_chance": 1.0, "concealed": true, "radios_police": true }
+  ],
+  "seeded_extras": [
+    { "type": "armed_citizen", "chance_by_stars": [0.05, 0.1, 0.15, 0.25, 0.35, 0.5], "max": 2 },
+    { "type": "off_duty_cop", "chance_by_stars": [0.0, 0.05, 0.1, 0.15, 0.25, 0.4], "max": 1 }
+  ],
+  "dynamics": {
+    "_doc": "Per-second changes. Stimulus values are added then clamped to 0..1.",
+    "gunshot_heard": { "fear": 0.25, "panic": 0.2, "compliance": 0.05 },
+    "gun_pointed_at": { "fear": 0.35, "compliance": 0.3, "heroics": -0.1 },
+    "shouted_at": { "compliance": 0.2, "panic": -0.05 },
+    "civilian_killed_nearby": { "fear": 0.4, "panic": 0.4, "compliance": -0.15, "heroics": 0.15 },
+    "robber_looks_away": { "heroics": 0.05 },
+    "zip_tied": { "compliance": 0.5, "panic": -0.2 },
+    "decay_per_second": { "fear": -0.005, "panic": -0.02, "compliance": -0.004, "heroics": 0.0 }
+  },
+  "thresholds": {
+    "flee_if_panic_above": 0.7,
+    "comply_if_compliance_above": 0.55,
+    "hero_if_heroics_above": 0.65,
+    "freeze_if_fear_above": 0.85
+  },
+  "cap": { "max_active_ai_civilians": 40, "lod_distance_m": [15, 35, 70] }
+}

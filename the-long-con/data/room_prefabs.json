@@ -1,0 +1,46 @@
+{
+  "_doc": "Room prefabs for the bank generator. size is [width, depth] in grid cells (one cell = cell_size_m in seed_config). floors lists allowed floor types. door_sides are sockets where a door may be cut (n/e/s/w). rules.never_adjacent: tags that may not share an edge. rules.requires_on_floor: tags that must exist on the same floor. rules.requires_adjacent: tags that must share an edge. outer_edge: the room must touch the building's outer wall. inner_only: the room may not touch it. door_to_tags: doors may only open onto neighbours with one of these tags. max_doors: cap on doors. kind: anchor | route | required | optional | filler.",
+  "version": 1,
+  "rooms": [
+    { "id": "stairwell", "name": "Stairwell", "kind": "anchor", "size": [1, 1], "floors": ["parking", "vault_level", "lobby", "mezzanine", "offices", "staff", "roof"], "tags": ["vertical", "stairs", "public_route"], "door_sides": ["n", "e", "s", "w"] },
+    { "id": "elevator", "name": "Elevator Shaft", "kind": "anchor", "size": [1, 1], "floors": ["parking", "vault_level", "lobby", "mezzanine", "offices", "staff", "roof"], "tags": ["vertical", "elevator"], "door_sides": ["n", "e", "s", "w"] },
+    { "id": "corridor", "name": "Corridor", "kind": "route", "size": [1, 1], "floors": ["parking", "vault_level", "lobby", "mezzanine", "offices", "staff", "roof"], "tags": ["route"], "door_sides": ["n", "e", "s", "w"] },
+
+    { "id": "lobby_hall", "name": "Main Lobby", "kind": "anchor", "size": [3, 3], "floors": ["lobby"], "tags": ["public", "lobby", "civilians_high"], "door_sides": ["n", "e", "s", "w"], "outer_edge": true, "entry": "main_entrance" },
+    { "id": "vault", "name": "Vault", "kind": "anchor", "size": [3, 2], "floors": ["vault_level"], "tags": ["vault", "secure"], "door_sides": ["n", "e", "s", "w"], "max_doors": 1, "door_to_tags": ["checkpoint"], "inner_only": true, "rules": { "never_adjacent": ["wet"], "requires_on_floor": ["pump"] } },
+
+    { "id": "teller_counter", "name": "Teller Counter", "kind": "required", "size": [2, 1], "floors": ["lobby"], "tags": ["public", "staff", "civilians_high", "cash_small"], "door_sides": ["n", "e", "s", "w"], "rules": { "requires_adjacent": ["lobby"] } },
+    { "id": "security_office", "name": "Security Office", "kind": "required", "size": [2, 1], "floors": ["lobby", "mezzanine"], "tags": ["staff_only", "cameras", "guards"], "door_sides": ["n", "e", "s", "w"] },
+    { "id": "manager_office", "name": "Manager's Office", "kind": "required", "size": [2, 2], "floors": ["mezzanine", "offices"], "tags": ["staff_only", "manager", "keys"], "door_sides": ["n", "e", "s", "w"] },
+    { "id": "server_room", "name": "Server Room", "kind": "required", "size": [2, 1], "floors": ["offices", "staff"], "tags": ["staff_only", "network", "controller"], "door_sides": ["n", "e", "s", "w"], "max_doors": 1, "rules": { "requires_on_floor": ["power", "cooling"], "never_adjacent": ["wet"] } },
+    { "id": "electrical_room", "name": "Electrical Room", "kind": "required", "size": [1, 1], "floors": ["offices", "staff", "parking"], "tags": ["staff_only", "power"], "door_sides": ["n", "e", "s", "w"] },
+    { "id": "hvac_room", "name": "HVAC Room", "kind": "required", "size": [1, 1], "floors": ["offices", "staff", "roof"], "tags": ["staff_only", "cooling", "vent_access"], "door_sides": ["n", "e", "s", "w"] },
+    { "id": "pump_room", "name": "Pump Room", "kind": "required", "size": [1, 1], "floors": ["vault_level"], "tags": ["staff_only", "pump"], "door_sides": ["n", "e", "s", "w"] },
+    { "id": "vault_antechamber", "name": "Vault Antechamber", "kind": "required", "size": [2, 1], "floors": ["vault_level"], "tags": ["secure", "checkpoint"], "door_sides": ["n", "e", "s", "w"], "rules": { "requires_adjacent": ["vault"] } },
+    { "id": "safe_deposit", "name": "Safe Deposit Room", "kind": "required", "size": [2, 2], "floors": ["vault_level"], "tags": ["secure", "valuables"], "door_sides": ["n", "e", "s", "w"], "rules": { "never_adjacent": ["wet"] } },
+    { "id": "counting_room", "name": "Counting Room", "kind": "required", "size": [2, 1], "floors": ["vault_level", "staff"], "tags": ["secure", "cash_medium", "staff"], "door_sides": ["n", "e", "s", "w"] },
+    { "id": "loading_dock", "name": "Loading Dock", "kind": "required", "size": [2, 2], "floors": ["parking"], "tags": ["entry", "vehicles"], "door_sides": ["n", "e", "s", "w"], "outer_edge": true, "entry": "loading_dock" },
+    { "id": "staff_entrance", "name": "Staff Entrance", "kind": "required", "size": [1, 1], "floors": ["lobby"], "tags": ["entry", "staff_only"], "door_sides": ["n", "e", "s", "w"], "outer_edge": true, "entry": "staff_entrance" },
+    { "id": "roof_access", "name": "Roof Access", "kind": "required", "size": [1, 1], "floors": ["roof"], "tags": ["entry", "roof"], "door_sides": ["n", "e", "s", "w"], "entry": "roof" },
+    { "id": "helipad", "name": "Helipad", "kind": "required", "size": [3, 3], "floors": ["roof"], "tags": ["roof", "extraction"], "door_sides": ["n", "e", "s", "w"] },
+    { "id": "bathroom", "name": "Bathroom", "kind": "required", "size": [1, 1], "floors": ["lobby", "mezzanine", "offices", "staff"], "tags": ["wet", "public"], "door_sides": ["n", "e", "s", "w"], "max_doors": 1 },
+    { "id": "break_room", "name": "Break Room", "kind": "required", "size": [2, 1], "floors": ["staff", "offices"], "tags": ["staff", "civilians_med"], "door_sides": ["n", "e", "s", "w"] },
+    { "id": "maintenance", "name": "Maintenance", "kind": "required", "size": [1, 1], "floors": ["parking", "vault_level", "staff"], "tags": ["staff_only", "tools"], "door_sides": ["n", "e", "s", "w"] },
+
+    { "id": "cafe", "name": "Cafe Corner", "kind": "optional", "size": [2, 1], "floors": ["lobby", "mezzanine"], "tags": ["public", "civilians_med"], "door_sides": ["n", "e", "s", "w"], "weight": 2, "max_per_floor": 1 },
+    { "id": "meeting_room", "name": "Meeting Room", "kind": "optional", "size": [2, 1], "floors": ["mezzanine", "offices"], "tags": ["staff", "civilians_med"], "door_sides": ["n", "e", "s", "w"], "weight": 3, "max_per_floor": 2 },
+    { "id": "open_office", "name": "Open Office", "kind": "optional", "size": [2, 2], "floors": ["offices", "mezzanine"], "tags": ["staff", "civilians_high"], "door_sides": ["n", "e", "s", "w"], "weight": 3, "max_per_floor": 2 },
+    { "id": "archive", "name": "Archive", "kind": "optional", "size": [2, 1], "floors": ["offices", "staff", "vault_level"], "tags": ["staff_only"], "door_sides": ["n", "e", "s", "w"], "weight": 2, "max_per_floor": 1 },
+    { "id": "locker_room", "name": "Locker Room", "kind": "optional", "size": [2, 1], "floors": ["staff"], "tags": ["staff_only", "uniforms"], "door_sides": ["n", "e", "s", "w"], "weight": 2, "max_per_floor": 1, "rules": { "never_adjacent": ["vault"] } },
+    { "id": "parking_bay", "name": "Parking Bay", "kind": "optional", "size": [2, 2], "floors": ["parking"], "tags": ["vehicles"], "door_sides": ["n", "e", "s", "w"], "weight": 5, "max_per_floor": 6 },
+    { "id": "roof_deck", "name": "Roof Deck", "kind": "optional", "size": [2, 2], "floors": ["roof"], "tags": ["roof", "outdoor"], "door_sides": ["n", "e", "s", "w"], "weight": 4, "max_per_floor": 6 },
+    { "id": "it_closet", "name": "IT Closet", "kind": "optional", "size": [1, 1], "floors": ["offices", "staff", "mezzanine"], "tags": ["staff_only", "network"], "door_sides": ["n", "e", "s", "w"], "weight": 2, "max_per_floor": 1 },
+
+    { "id": "storage", "name": "Storage", "kind": "filler", "size": [1, 1], "floors": ["parking", "vault_level", "lobby", "mezzanine", "offices", "staff"], "tags": ["staff_only"], "door_sides": ["n", "e", "s", "w"], "weight": 4 },
+    { "id": "office_small", "name": "Small Office", "kind": "filler", "size": [1, 1], "floors": ["lobby", "mezzanine", "offices", "staff"], "tags": ["staff"], "door_sides": ["n", "e", "s", "w"], "weight": 5 },
+    { "id": "utility_closet", "name": "Utility Closet", "kind": "filler", "size": [1, 1], "floors": ["parking", "vault_level", "lobby", "mezzanine", "offices", "staff", "roof"], "tags": ["staff_only"], "door_sides": ["n", "e", "s", "w"], "weight": 2 },
+    { "id": "janitor", "name": "Janitor Closet", "kind": "filler", "size": [1, 1], "floors": ["parking", "vault_level", "lobby", "mezzanine", "offices", "staff"], "tags": ["staff_only", "wet"], "door_sides": ["n", "e", "s", "w"], "weight": 2, "rules": { "never_adjacent": ["vault", "network"] } },
+    { "id": "roof_unit", "name": "Roof Machinery", "kind": "filler", "size": [1, 1], "floors": ["roof"], "tags": ["roof", "outdoor"], "door_sides": ["n", "e", "s", "w"], "weight": 3 },
+    { "id": "parking_spot", "name": "Parking Spot", "kind": "filler", "size": [1, 1], "floors": ["parking"], "tags": ["vehicles"], "door_sides": ["n", "e", "s", "w"], "weight": 4 }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "_doc": "Game modes and rule sets from the blueprint.",
+  "version": 1,
+  "modes": [
+    { "id": "pve", "name": "PvE Co-op", "players": [2, 6], "phases": ["scout", "plan", "infiltrate", "takeover", "siege", "extraction", "payout"], "max_stars": 6, "police": "ai" },
+    { "id": "pvpve", "name": "PvPvE", "team_size": [4, 8], "phases": ["pre_round", "takeover", "siege", "extraction", "payout"], "max_stars": 5, "police": "players_plus_ai_fill", "pre_round_seconds": 60 }
+  ],
+  "rule_sets": [
+    { "id": "arcade", "name": "Arcade", "robber_death": "respawn", "respawn_cost": 500, "robber_killed_counts_as": "arrested", "arrest": "bonus_for_police", "police_respawn": "timed" },
+    { "id": "realistic", "name": "Realistic", "robber_death": "final_after_downed", "downed_window_seconds": 45, "dead_player_support": ["cameras", "comms", "planning_map"], "arrest": "held_until_breakout", "police_respawn": "timed" }
+  ],
+  "session_length_minutes": { "friends": [60, 90], "public": [30, 45] },
+  "police_respawn": { "base_seconds": 20, "growth_per_minute": 1.5, "max_seconds": 90 }
+}

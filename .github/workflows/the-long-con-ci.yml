@@ -1,0 +1,43 @@
+name: The Long Con CI
+
+on:
+  push:
+    paths: ["the-long-con/**", ".github/workflows/the-long-con-ci.yml"]
+  pull_request:
+    paths: ["the-long-con/**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GODOT_VERSION: "4.7-stable"
+    defaults:
+      run:
+        working-directory: the-long-con
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot
+        run: |
+          curl -sSL -o godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q godot.zip
+          sudo mv "Godot_v${GODOT_VERSION}_linux.x86_64" /usr/local/bin/godot
+          godot --headless --version
+
+      - name: Import project
+        run: timeout 300 godot --headless --import || true
+
+      - name: Parse-check every script
+        run: tools/check_all.sh
+
+      - name: Unit tests
+        run: timeout 600 godot --headless -s res://tests/run_tests.gd
+
+      - name: Network smoke test (host + client)
+        run: timeout 120 tools/net_smoke.sh
+
+      - name: Scene smoke test (sandbox loads and runs 120 frames)
+        run: |
+          timeout 120 godot --headless -- --scene=res://scenes/bank_sandbox.tscn --frames=120 --seed=1 --stars=3 2>&1 | tee run.log
+          ! grep -q "SCRIPT ERROR" run.log
