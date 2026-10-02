@@ -61,6 +61,7 @@ func _ready() -> void:
 
 	_button(box, "Planning Table (floor plans + intel)", "res://scenes/planning_table.tscn")
 	_button(box, "Walk the Bank (greybox sandbox)", "res://scenes/bank_sandbox.tscn")
+	_button(box, "Character Lineup (models)", "res://scenes/character_lineup.tscn")
 	var quit := Button.new()
 	quit.text = "Quit"
 	quit.pressed.connect(func(): get_tree().quit())

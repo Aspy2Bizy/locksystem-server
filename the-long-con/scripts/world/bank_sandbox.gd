@@ -13,6 +13,7 @@ var _map_panel: PanelContainer
 func _ready() -> void:
 	_setup_environment()
 	builder = BankBuilder.new()
+	builder.data = DataDB.data
 	add_child(builder)
 	player = PlayerController.new()
 	add_child(player)

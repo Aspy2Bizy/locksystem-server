@@ -33,6 +33,7 @@ const COLORS := {
 }
 
 var bank: Dictionary
+var data: GameData      ## set by the owner; needed to dress civilians
 var cell := 6.0
 var floor_h := 4.0
 var _mats := {}
@@ -167,21 +168,12 @@ func _build_markers() -> void:
 		per_cell[key] = k + 1
 		var jitter := Vector3(((k % 3) - 1) * 1.2, 0, ((k / 3) % 3 - 1) * 1.2)
 		var p := cell_center(civ.floor, Vector2i(civ.cell[0], civ.cell[1])) + jitter + Vector3(0, 0.9, 0)
-		var color: Color = COLORS.civilian
-		if civ.type in ["guard", "security_chief"]:
-			color = COLORS.guard
-		if civ.type in ["manager"]:
-			color = COLORS.vip
-		if civ.armed and civ.type not in ["guard", "security_chief"]:
-			color = COLORS.armed
-		var mi := MeshInstance3D.new()
-		var cap := CapsuleMesh.new()
-		cap.radius = 0.3
-		cap.height = 1.75
-		mi.mesh = cap
-		mi.material_override = _mat(color)
-		mi.position = p
-		add_child(mi)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = BankGenerator.mix_seed(bank.seed, 900 + civ.id)
+		var person := CharacterModel.random_civilian(data, civ.type, rng)
+		person.position = p - Vector3(0, 0.9, 0)
+		person.rotation.y = rng.randf_range(-PI, PI)
+		add_child(person)
 
 
 func _build_floor_links() -> void:

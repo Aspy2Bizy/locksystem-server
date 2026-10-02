@@ -1,0 +1,78 @@
+{
+  "_doc": "Character outfits. 'wear' maps clothing mesh -> material id. 'hide_skin' lists skin regions fully covered by the outfit (hidden to avoid poke-through). Materials: color is linear-ish sRGB 0..1, normal is a texture in assets/characters/textures, uv_scale tiles it over the body UV layout. 'palette' entries let one outfit pick random colors per character.",
+  "version": 1,
+  "body_variants": ["male_a", "male_b", "male_c", "female_a", "female_b", "female_c"],
+  "skin_tones": {
+    "male_a": [[0.80, 0.62, 0.52], [0.86, 0.68, 0.58], [0.74, 0.55, 0.44]],
+    "female_a": [[0.84, 0.66, 0.57], [0.88, 0.72, 0.63], [0.78, 0.59, 0.49]],
+    "male_b": [[0.36, 0.23, 0.17], [0.45, 0.30, 0.22], [0.28, 0.18, 0.13]],
+    "female_b": [[0.40, 0.26, 0.19], [0.50, 0.34, 0.25], [0.32, 0.21, 0.15]],
+    "male_c": [[0.78, 0.62, 0.48], [0.72, 0.56, 0.42], [0.82, 0.67, 0.53]],
+    "female_c": [[0.82, 0.66, 0.53], [0.76, 0.60, 0.47], [0.86, 0.71, 0.58]]
+  },
+  "hair_colors": [[0.05, 0.04, 0.035], [0.12, 0.08, 0.05], [0.25, 0.16, 0.09], [0.45, 0.33, 0.18], [0.55, 0.55, 0.53], [0.02, 0.02, 0.02]],
+  "materials": {
+    "jumpsuit_red": { "color": [0.50, 0.05, 0.04], "roughness": 0.82, "normal": "fabric_ripstop_n.png", "normal_scale": 0.7, "uv_scale": 22, "sheen": 0.3 },
+    "glove_black": { "color": [0.03, 0.03, 0.03], "roughness": 0.45, "normal": "leather_n.png", "normal_scale": 0.6, "uv_scale": 30, "clearcoat": 0.2 },
+    "boot_black": { "color": [0.025, 0.022, 0.02], "roughness": 0.35, "normal": "leather_n.png", "normal_scale": 0.8, "uv_scale": 18, "clearcoat": 0.5 },
+    "mask_porcelain": { "color": [0.86, 0.84, 0.80], "roughness": 0.22, "clearcoat": 0.8, "normal_scale": 0.0 },
+    "uniform_navy": { "color": [0.035, 0.05, 0.09], "roughness": 0.85, "normal": "fabric_twill_n.png", "normal_scale": 0.8, "uv_scale": 26, "sheen": 0.3 },
+    "balaclava_black": { "color": [0.025, 0.025, 0.028], "roughness": 0.95, "normal": "knit_n.png", "normal_scale": 1.0, "uv_scale": 40, "sheen": 0.5 },
+    "helmet_black": { "color": [0.03, 0.035, 0.04], "roughness": 0.55, "clearcoat": 0.3, "normal": "leather_n.png", "normal_scale": 0.15, "uv_scale": 8 },
+    "vest_black": { "color": [0.04, 0.045, 0.05], "roughness": 0.9, "normal": "cordura_n.png", "normal_scale": 1.0, "uv_scale": 20 },
+    "vest_olive": { "color": [0.16, 0.17, 0.11], "roughness": 0.9, "normal": "cordura_n.png", "normal_scale": 1.0, "uv_scale": 20 },
+    "guard_shirt": { "color": [0.42, 0.44, 0.47], "roughness": 0.8, "normal": "fabric_twill_n.png", "normal_scale": 0.5, "uv_scale": 30 },
+    "guard_trousers": { "color": [0.03, 0.03, 0.035], "roughness": 0.8, "normal": "fabric_twill_n.png", "normal_scale": 0.6, "uv_scale": 30 },
+    "shoe_black": { "color": [0.02, 0.02, 0.02], "roughness": 0.3, "normal": "leather_n.png", "normal_scale": 0.5, "uv_scale": 18, "clearcoat": 0.6 },
+    "civ_shirt": { "palette": [[0.85, 0.85, 0.82], [0.35, 0.50, 0.70], [0.65, 0.20, 0.20], [0.20, 0.35, 0.25], [0.75, 0.68, 0.50], [0.12, 0.12, 0.15], [0.60, 0.55, 0.70]], "roughness": 0.85, "normal": "fabric_twill_n.png", "normal_scale": 0.35, "uv_scale": 34, "sheen": 0.4 },
+    "civ_trousers": { "palette": [[0.10, 0.13, 0.22], [0.25, 0.22, 0.18], [0.08, 0.08, 0.09], [0.45, 0.40, 0.30], [0.30, 0.32, 0.35]], "roughness": 0.85, "normal": "fabric_twill_n.png", "normal_scale": 0.7, "uv_scale": 30 },
+    "civ_shoes": { "palette": [[0.03, 0.02, 0.02], [0.20, 0.12, 0.07], [0.80, 0.80, 0.78]], "roughness": 0.4, "normal": "leather_n.png", "normal_scale": 0.5, "uv_scale": 18, "clearcoat": 0.3 }
+  },
+  "outfits": {
+    "robber": {
+      "wear": { "jumpsuit": "jumpsuit_red", "gloves": "glove_black", "boots": "boot_black", "mask": "mask_porcelain", "hair_short": "hair" },
+      "hide_skin": ["torso", "upperarm", "lowerarm", "hand", "upperleg", "lowerleg", "foot"]
+    },
+    "robber_heavy": {
+      "wear": { "jumpsuit": "jumpsuit_red", "gloves": "glove_black", "boots": "boot_black", "mask": "mask_porcelain", "vest": "vest_olive", "hair_short": "hair" },
+      "hide_skin": ["torso", "upperarm", "lowerarm", "hand", "upperleg", "lowerleg", "foot"]
+    },
+    "police_assault": {
+      "wear": { "uniform": "uniform_navy", "gloves": "glove_black", "boots": "boot_black", "balaclava": "balaclava_black", "helmet": "helmet_black", "vest": "vest_black" },
+      "hide_skin": ["torso", "upperarm", "lowerarm", "hand", "upperleg", "lowerleg", "foot", "neck"]
+    },
+    "police_officer": {
+      "wear": { "uniform": "uniform_navy", "boots": "boot_black", "vest": "vest_black", "hair_short": "hair" },
+      "hide_skin": ["torso", "upperarm", "lowerarm", "upperleg", "lowerleg", "foot"]
+    },
+    "guard": {
+      "wear": { "shirt_long": "guard_shirt", "trousers": "guard_trousers", "shoes": "shoe_black", "hair_short": "hair" },
+      "hide_skin": ["torso", "upperarm", "lowerarm", "upperleg", "lowerleg", "foot"]
+    },
+    "civilian": {
+      "wear": { "shirt": "civ_shirt", "trousers": "civ_trousers", "shoes": "civ_shoes", "hair_short": "hair" },
+      "hide_skin": ["torso", "upperarm", "upperleg", "lowerleg", "foot"]
+    },
+    "civilian_formal": {
+      "wear": { "shirt_long": "civ_shirt", "trousers": "civ_trousers", "shoes": "shoe_black", "hair_short": "hair" },
+      "hide_skin": ["torso", "upperarm", "lowerarm", "upperleg", "lowerleg", "foot"]
+    },
+    "civilian_skirt": {
+      "wear": { "shirt": "civ_shirt", "skirt_short": "civ_trousers", "shoes": "civ_shoes", "hair_short": "hair" },
+      "hide_skin": ["torso", "upperarm", "foot"]
+    }
+  },
+  "civilian_outfit_for_type": {
+    "customer": ["civilian", "civilian", "civilian_skirt"],
+    "elderly": ["civilian_formal"],
+    "parent_child": ["civilian", "civilian_skirt"],
+    "teller": ["civilian_formal"],
+    "office_worker": ["civilian_formal", "civilian_skirt"],
+    "manager": ["civilian_formal"],
+    "security_chief": ["guard"],
+    "guard": ["guard"],
+    "janitor": ["civilian"],
+    "armed_citizen": ["civilian"],
+    "off_duty_cop": ["civilian"]
+  }
+}

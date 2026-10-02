@@ -10,11 +10,13 @@ Vertical slice first, then multiplayer, then everything else. Each milestone mus
 - [x] Planning table, greybox walkable bank
 - [x] Lobby networking foundation
 - [x] CI
+- [x] Realistic rigged character models with outfits, skin shader and IK poses (docs/CHARACTERS.md)
 
 ## M1: Single-player vertical slice (PvE, one robber, AI police)
 
 - [ ] Real stairs (replace interact panels), elevators that move
 - [ ] Weapons in 3D: hitscan through `DamageModel`, recoil, reload, ammo
+- [ ] Character animation: retarget Mixamo walk, run, idle and cower clips to the MakeHuman rig
 - [ ] Civilians as `NavigationAgent3D` actors driven by `CivilianBrain` (flee to exits, comply, freeze, hero)
 - [ ] Guards and cameras with sight cones feeding `Detectability.suspicion_rate`
 - [ ] `HeistFlow` phases: infiltrate, go loud, takeover, vault, extraction; HUD phase banner

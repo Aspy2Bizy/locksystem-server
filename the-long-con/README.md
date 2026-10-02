@@ -17,6 +17,7 @@ The full design is in [docs/BLUEPRINT.md](docs/BLUEPRINT.md).
 | Planning table (2D floor plans + scouted intel) | Playable |
 | Greybox 3D bank you can walk through | Playable (stairs are interact panels for now) |
 | Lobby networking (host/join, roles, seed sync) | Foundation done; host and client verified on localhost |
+| Realistic rigged characters (robbers, police, guards, civilians) | Done: 6 CC0 MakeHuman bodies, generated clothing, skin shader, poses with IK; see [docs/CHARACTERS.md](docs/CHARACTERS.md) |
 | Player sync, AI, combat in 3D, voice | Not started; see [docs/ROADMAP.md](docs/ROADMAP.md) |
 
 > This game currently lives in the `the-long-con/` folder on the `the-long-con` branch of the `locksystem-server` repo. Its CI is `.github/workflows/the-long-con-ci.yml` at the repo root.
@@ -30,6 +31,7 @@ The full design is in [docs/BLUEPRINT.md](docs/BLUEPRINT.md).
 In the main menu, choose a seed and a difficulty, then:
 
 - **Planning Table**: floor plans of the generated bank. Use "View" to switch between scouted intel and the full debug view.
+- **Character Lineup**: the character models in a studio. Arrow keys orbit, the mouse wheel zooms, R re-rolls.
 - **Walk the Bank**: first-person greybox. WASD to move, Shift to sprint, Ctrl to crouch, E to use doors and stairs, M for the map, F5 for a new bank, F1 to return to the menu, Esc to free the mouse.
 
 ## Tests
@@ -58,6 +60,6 @@ scripts/net/     lobby networking
 scripts/autoload DataDB, Events, Session, DevTools, Net
 scenes/          main_menu, planning_table, bank_sandbox
 tests/           unit tests + network smoke test
-tools/           check_all.sh, dump_bank.gd, net_smoke.sh
+tools/           check_all.sh, dump_bank.gd, net_smoke.sh, characters/ (model + texture builders)
 docs/            blueprint, architecture, roadmap, decisions, back-at-the-computer checklist
 ```
